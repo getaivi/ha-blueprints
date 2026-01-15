@@ -1,0 +1,130 @@
+blueprint:
+  name: |
+    Aivi: Generic activity — progress + ETA (sensors)
+  description: |
+    Updates an Aivi Live Activity from Home Assistant sensors using the Generic template.
+
+    See the [docs](https://docs.getaivi.app/templates/#generic-template) for more info about the template.
+
+  domain: automation
+  input:
+    slug:
+      name: Activity slug
+      description: The slug of the activity
+
+    state:
+      name: Aivi activity state
+      description: The sensor tells Aivi whether the activity is ongoing or not.
+      selector:
+        entity:
+          filter:
+            - domain: binary_sensor
+
+    progress:
+      name: Progress
+      description: Progress of the activity (0-100).
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+
+    human_state:
+      name: Human readable activity state
+      description: >-
+        This state should describe the current activity state, for example:
+        "Starting", "Washing", "Drying", "Done", etc.
+      default: null
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+
+    eta:
+      name: ETA
+      description: >-
+        Estimated time when the activity is done. Can be either a relative (timedelta) or absolute (timestamp) value. If omitted, no ETA will be shown.
+      default: null
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              device_class: timestamp
+            - domain: sensor
+              device_class: duration
+
+    icon:
+      name: Icon
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon.
+        Example: washer.
+
+triggers:
+  - trigger: state
+    entity_id:
+      - !input state
+      - !input human_state
+      - !input progress
+      - !input eta
+
+variables:
+  slug: !input slug
+  icon: !input icon
+  state_entity: !input state
+  human_state_entity: !input human_state
+  progress_entity: !input progress
+  eta_entity: !input eta
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+actions:
+  - variables:
+      state: >-
+        {{ "ONGOING" if is_state(state_entity, "on") else "IDLE" }}
+
+  - variables:
+      progress: >-
+        {% if state == "IDLE" %}
+          {{ 1.0 }}
+        {% else %}
+          {% set p = states(progress_entity)|float(0) / 100 %}
+          {{ min(max(p, 0), 1) }}
+        {% endif %}
+
+      human_state: >-
+        {% if human_state_entity is none %}
+          {{ None }}
+        {% else %}
+          {{ state_translated(human_state_entity) }}
+        {% endif %}
+
+      eta: >-
+        {% if human_state_entity is none %}
+          {% set remaining = None %}
+        {% elif state == "IDLE" %}
+          {% set remaining = None %}
+        {% elif state_attr(eta_entity, "device_class") == "timestamp" %}
+          {% set t_now = now() %}
+          {% set t_eta = as_datetime(states(eta_entity), t_now) %}
+          {% set remaining = (t_eta - t_now).total_seconds() %}
+        {% else %}
+          {% set remaining = states(eta_entity) %}
+        {% endif %}
+        {{ max(int(remaining), 0) if remaining is not none else None }}
+
+  - action: rest_command.update_live_activity
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {
+          "state": {{ state|to_json }},
+          "content": {
+            "template": "generic",
+            "state": {{ human_state|to_json }},
+            "remaining_time": {{ eta|to_json }},
+            "progress": {{ progress|to_json }},
+            "icon": {{ icon|to_json }}
+          }
+        }
