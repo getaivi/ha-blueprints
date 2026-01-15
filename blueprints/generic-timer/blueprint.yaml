@@ -1,0 +1,154 @@
+blueprint:
+  name: |
+    Aivi: Generic activity — timer helper
+  description: |
+    Updates an Aivi Live Activity from a Home Assistant timer entity using the Generic template.
+
+    See the [docs](https://docs.getaivi.app/templates/#generic-template) for more info about the template.
+
+  domain: automation
+  input:
+    slug:
+      name: Activity slug
+      description: The slug of the activity
+
+    timer:
+      name: Timer
+      description: The timer entity that will drive the progression of the live activity.
+      selector:
+        entity:
+          filter:
+            - domain: timer
+
+    human_state:
+      name: Human-readable activity state
+      default:
+      description: |
+        An optional, human readable activity state to be displayed in the live activity.
+
+        If omitted, the timer state will be automatically mapped to the following states: "In progress", "Paused" or "Done".
+
+        Note that, due to a limitation in Home Assistant, the change to this sensor will not be immediately be reflected in the Live Activity and instead will be baked into the next scheduled update.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+            - domain: input_select
+            - domain: text
+
+    icon:
+      name: Icon
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon. Example: washer.
+
+trigger_variables:
+  human_state: !input human_state
+
+triggers:
+  - trigger: state
+    entity_id:
+      - !input timer
+
+  - platform: template
+    value_template: "{{ state_translated(human_state) if human_state is not none else None }}"
+
+variables:
+  slug: !input slug
+  icon: !input icon
+  timer_entity: !input timer
+  human_state_entity: !input human_state
+
+mode: restart
+
+actions:
+  - repeat:
+      while:
+        - condition: template
+          value_template: >-
+            {{ state_attr(timer_entity, "remaining") is not none }}
+
+      sequence:
+        - variables: &time
+            duration: >-
+              {{ as_timedelta(state_attr(timer_entity, "duration")).total_seconds() }}
+
+            eta: >-
+              {% if state_attr(timer_entity, "finishes_at") is none %}
+                {% set remaining = as_timedelta(state_attr(timer_entity, "remaining")).total_seconds() %}
+              {% else %}
+                {% set t_now = now() %}
+                {% set t_eta = as_datetime(state_attr(timer_entity, "finishes_at"), t_now) %}
+                {% set remaining = (t_eta - t_now).total_seconds() %}
+              {% endif %}
+              {{ max(int(remaining), 0) }}
+
+        - variables:
+            progress: >-
+              {{ (duration - eta) / duration }}
+
+            human_state: >-
+              {% if human_state_entity is not none %}
+                {{ state_translated(human_state_entity) }}
+              {% elif state_attr(timer_entity, "finishes_at") is none %}
+                Paused
+              {% else %}
+                In progress
+              {% endif %}
+
+        - action: rest_command.update_live_activity
+          response_variable: aivi_response
+          data:
+            slug: "{{ slug }}"
+            payload: >-
+              {
+                "state": "ONGOING",
+                "content": {
+                  "template": "generic",
+                  "state": {{ human_state|to_json }},
+                  "remaining_time": {{ eta|to_json }},
+                  "progress": {{ progress|to_json }},
+                  "icon": {{ icon|to_json }}
+                }
+              }
+
+        - variables: *time
+
+        - delay:
+            seconds: >-
+              {% if state_attr(timer_entity, "finishes_at") is none %}
+                {{ 3600 }}
+              {% else %}
+                {% set progress = (duration - eta) / duration %}
+                {% set next_step = progress|round(2, 'ceil') %}
+                {% if next_step == progress %}
+                  {% set progress_delay = duration / 100 %}
+                {% else %}
+                  {% set progress_delay = ((next_step - progress) * duration) %}
+                {% endif %}
+
+                {{ max(1, min(eta % 60, progress_delay)) }}
+              {% endif %}
+
+  - variables:
+      human_state: >-
+        {% if human_state_entity is not none %}
+          {{ state_translated(human_state_entity) }}
+        {% else %}
+          Done
+        {% endif %}
+
+  - action: rest_command.update_live_activity
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {
+          "state": "IDLE",
+          "content": {
+            "template": "generic",
+            "state": {{ human_state|to_json }},
+            "remaining_time": null,
+            "progress": 1,
+            "icon": {{ icon|to_json }}
+          }
+        }
