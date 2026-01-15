@@ -1,0 +1,168 @@
+---
+name: CI/CD
+
+on:
+  merge_group:
+  push:
+    branches:
+      - main
+    tags:
+      - "*-[0-9]+.[0-9]+.[0-9]+"
+  pull_request:
+    branches:
+      - main
+      - "*-[0-9]+.x.x"
+
+env:
+  FORCE_COLOR: 1
+  UV_FROZEN: 1
+
+jobs:
+  test-matrix:
+    name: Generate test matrix
+    runs-on: ubuntu-latest
+
+    outputs:
+      session: ${{ steps.session.outputs.session }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build matrix
+        id: session
+        run: |
+          echo session=$(uvx nox -l --json | jq -c '[.[].session]') \
+          | tee --append $GITHUB_OUTPUT
+
+  test:
+    name: Test Python ${{ matrix.session }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    needs: test-matrix
+    continue-on-error: ${{ matrix.experimental }}
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        session: ${{ fromJson(needs.test-matrix.outputs.session) }}
+        os:
+          - ubuntu-24.04
+        include:
+          - experimental: false
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: List sessions
+        run: uvx nox -l
+
+      - name: Run tests
+        run: uvx nox -s "${{ matrix.session }}" -- --cov-report=xml
+
+  check:
+    if: always()
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+
+  release-metadata:
+    name: "Extracting release metadata"
+    if: github.ref_type == 'tag'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    outputs:
+      blueprint_path: ${{ steps.meta.outputs.blueprint_path }}
+      blueprint: ${{ steps.meta.outputs.blueprint }}
+      version: ${{ steps.meta.outputs.version }}
+      major_version: ${{ steps.meta.outputs.major_version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - shell: python
+        id: meta
+        run: |
+          import re
+          import os
+          import sys
+          from pathlib import Path
+
+          ref_name = os.environ["GITHUB_REF_NAME"]
+          match = re.match(r"^(.+)-([0-9]+\.[0-9]+\.[0-9]+)$", ref_name)
+
+          if not match:
+              print("Invalid release tag")
+              sys.exit(1)
+
+          blueprint, version = match.groups()
+          major_version = version.split(".")[0]
+
+          blueprint_path = Path("blueprints") / blueprint / "blueprint.yaml"
+
+          if not blueprint_path.exists():
+              print("Blueprint not found")
+              sys.exit(1)
+
+          github_output = os.environ["GITHUB_OUTPUT"]
+
+          with open(github_output, "a", encoding="utf-8") as f:
+              f.write(f"blueprint_path={blueprint_path}\n")
+              f.write(f"blueprint={blueprint}\n")
+              f.write(f"version={version}\n")
+              f.write(f"major_version={major_version}\n")
+
+  publish:
+    name: "Publish blueprint to registry"
+    if: github.ref_type == 'tag'
+    needs:
+      - release-metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: registry
+      url: https://ha.getaivi.app/blueprints/${{ needs.release-metadata.outputs.blueprint }}-v${{ needs.release-metadata.outputs.version }}.yaml
+
+    env:
+      blueprint_path: ${{ needs.release-metadata.outputs.blueprint_path }}
+      blueprint: ${{ needs.release-metadata.outputs.blueprint }}
+      version: ${{ needs.release-metadata.outputs.version }}
+      major_version: ${{ needs.release-metadata.outputs.major_version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload blueprints and update index
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws s3 \
+            --endpoint-url ${{ secrets.AWS_ENDPOINT }} \
+            cp \
+            ${blueprint_path} \
+            s3://${{ secrets.S3_BUCKET }}/blueprints/${blueprint}-v${major_version}.yaml
+
+          aws s3 \
+            --endpoint-url ${{ secrets.AWS_ENDPOINT }} \
+            cp \
+            ${blueprint_path} \
+            s3://${{ secrets.S3_BUCKET }}/blueprints/${blueprint}-v${version}.yaml

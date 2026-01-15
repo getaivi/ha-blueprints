@@ -1,0 +1,30 @@
+[project]
+name = "aivi-ha-blueprints"
+version = "0.1.0"
+requires-python = ">=3.13.2"
+dependencies = [
+    "pytest>=9.0.0",
+    "ruff>=0.14.11",
+    "ty>=0.0.11",
+    "pytest-homeassistant-custom-component>=0.13.305",
+    "dirty-equals>=0.11",
+    "nox>=2025.11.12",
+    "homeassistant>=2026.1.0",
+]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D103",
+    "S101",
+    "ANN001",
+    "ANN202",
+    "ANN401",
+    "D",
+    "COM812",
+    "ARG001",
+    "PLR0913",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
