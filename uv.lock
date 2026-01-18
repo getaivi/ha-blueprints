@@ -210,6 +210,11 @@ dependencies = [
     { name = "ty" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "freezegun" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "dirty-equals", specifier = ">=0.11" },
@@ -220,6 +225,9 @@ requires-dist = [
     { name = "ruff", specifier = ">=0.14.11" },
     { name = "ty", specifier = ">=0.0.11" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "freezegun", specifier = ">=1.5.2" }]
 
 [[package]]
 name = "annotated-types"
