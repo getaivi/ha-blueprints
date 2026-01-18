@@ -2,6 +2,7 @@ from typing import Any
 
 import pytest
 from dirty_equals import IsPartialDict
+from freezegun import freeze_time
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 
@@ -124,5 +125,53 @@ async def test_blueprint_input_reflected_in_call(
         {
             "state": "ONGOING",
             "content": expected_content,
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    ("device_class", "value", "expected_eta"),
+    [
+        pytest.param("timestamp", "2026-01-01T01:30:15Z", 5415, id="absolute_ts"),
+        pytest.param("timestamp", "1767231015", 5415, id="absolute_unix"),
+        pytest.param("duration", "1234", 1234, id="relative"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_calculates_remaining_time_correctly(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+    device_class: str,
+    value: str,
+    expected_eta: int,
+) -> None:
+    await harness.setup_blueprint(
+        "generic-sensors",
+        {
+            "slug": "dishwasher",
+            "state": "binary_sensor.dishwasher_state",
+            "progress": "sensor.dishwasher_progress",
+            "human_state": "sensor.dishwasher_human_state",
+            "eta": "sensor.dishwasher_relative_eta",
+            "icon": "washer",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.dishwasher_state", "on")
+    hass.states.async_set("sensor.dishwasher_human_state", "In progress")
+    hass.states.async_set(
+        "sensor.dishwasher_relative_eta",
+        value,
+        attributes={"device_class": device_class},
+    )
+
+    with freeze_time("2026-01-01T00:00:00Z"), harness.record_calls() as calls:
+        await hass.async_block_till_done()
+
+    calls.assert_calls(
+        "dishwasher",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(remaining_time=expected_eta),
         },
     )

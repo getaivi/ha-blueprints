@@ -28,3 +28,8 @@ ignore = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "freezegun>=1.5.2",
+]
