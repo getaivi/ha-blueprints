@@ -229,7 +229,7 @@ async def test_defaults_are_normalized(
 
 
 @pytest.mark.asyncio
-async def test_value_sensors_include_units_for_both_columns(
+async def test_value_sensors_include_units_if_set(
     hass: HomeAssistant,
     harness: AiviTestHarness,
 ) -> None:
@@ -267,6 +267,57 @@ async def test_value_sensors_include_units_for_both_columns(
                     value=IsPartialDict(
                         value="55 °C",
                     ),
+                ),
+            ),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_used_templated_inputs_if_set(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    hass.states.async_set("input_boolean.show_right", "on")
+
+    await harness.setup_blueprint(
+        "monitor-sensors",
+        {
+            "slug": "laundry",
+            "state": "binary_sensor.laundry_state",
+            "icon": "washer",
+            "left_column_value_template": "{{ states('sensor.left_value') }}",
+            "left_column_header_template": "{{ states('sensor.left_header') }}",
+            "left_column_footer_template": "{{ states('sensor.left_footer') }}",
+            "right_column_value_template": "{{ states('sensor.right_value') }}",
+            "right_column_header_template": "{{ states('sensor.right_header') }}",
+            "right_column_footer_template": "{{ states('sensor.right_footer') }}",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.laundry_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "laundry",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                left_column=IsPartialDict(
+                    header="Left header",
+                    value=IsPartialDict(
+                        value="10",
+                    ),
+                    footer="Left footer",
+                ),
+                right_column=IsPartialDict(
+                    header="Right header",
+                    value=IsPartialDict(
+                        value="20",
+                    ),
+                    footer="Right footer",
                 ),
             ),
         },
