@@ -228,13 +228,11 @@ variables:
   left_column_value_color: !input left_column_value_color
   left_column_value_formatter: !input left_column_value_formatter
   left_column_footer: !input left_column_footer
-  left_column_visibility_condition: !input left_column_visibility_condition
   right_column_header: !input right_column_header
   right_column_value: !input right_column_value
   right_column_value_color: !input right_column_value_color
   right_column_value_formatter: !input right_column_value_formatter
   right_column_footer: !input right_column_footer
-  right_column_visibility_condition: !input right_column_visibility_condition
 
 mode: queued
 max: 10
