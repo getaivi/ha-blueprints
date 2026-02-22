@@ -26,7 +26,7 @@ async def test_reacts_to_state_and_sensor_changes(
     harness: AiviTestHarness,
 ) -> None:
     await harness.setup_blueprint(
-        "monitor-sensors",
+        "monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -124,7 +124,7 @@ async def test_blueprint_input_reflected_in_call(
     expected_content: Any,
 ) -> None:
     await harness.setup_blueprint(
-        "monitor-sensors",
+        "monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -174,7 +174,7 @@ async def test_defaults_are_normalized(
     hass.states.async_set("input_boolean.show_right", "on")
 
     await harness.setup_blueprint(
-        "monitor-sensors",
+        "monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -238,7 +238,7 @@ async def test_value_sensors_include_units_if_set(
     hass.states.async_set("sensor.right_value", "55", {"unit_of_measurement": "°C"})
 
     await harness.setup_blueprint(
-        "monitor-sensors",
+        "monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -281,7 +281,7 @@ async def test_used_templated_inputs_if_set(
     hass.states.async_set("input_boolean.show_right", "on")
 
     await harness.setup_blueprint(
-        "monitor-sensors",
+        "monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
