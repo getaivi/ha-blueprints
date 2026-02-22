@@ -110,6 +110,13 @@ blueprint:
                 - label: gray
                   value: gray
 
+        left_column_value_color_template:
+          name: Value color (template)
+          description: Can be used instead of "Value color" to provide a templated value color
+          default: ""
+          selector:
+            template:
+
         left_column_value_formatter:
           name: Value formatter
           default: passthrough
@@ -214,6 +221,13 @@ blueprint:
                 - label: gray
                   value: gray
 
+        right_column_value_color_template:
+          name: Value color (template)
+          description: Can be used instead of "Value color" to provide a templated value color
+          default: ""
+          selector:
+            template:
+
         right_column_value_formatter:
           name: Value formatter
           default: passthrough
@@ -270,6 +284,7 @@ variables:
   left_column_value: !input left_column_value
   left_column_value_template: !input left_column_value_template
   left_column_value_color: !input left_column_value_color
+  left_column_value_color_template: !input left_column_value_color_template
   left_column_value_formatter: !input left_column_value_formatter
   left_column_footer: !input left_column_footer
   left_column_footer_template: !input left_column_footer_template
@@ -278,6 +293,7 @@ variables:
   right_column_value: !input right_column_value
   right_column_value_template: !input right_column_value_template
   right_column_value_color: !input right_column_value_color
+  right_column_value_color_template: !input right_column_value_color_template
   right_column_value_formatter: !input right_column_value_formatter
   right_column_footer: !input right_column_footer
   right_column_footer_template: !input right_column_footer_template
@@ -327,9 +343,13 @@ actions:
               )
             ),
             "text_color": (
-              left_column_value_color
-              if left_column_value_color != "default"
-              else None
+              left_column_value_color_template|string
+              if left_column_value_color_template
+              else (
+                left_column_value_color
+                if left_column_value_color != "default"
+                else None
+              )
             ),
             "formatter": (
               left_column_value_formatter
@@ -361,9 +381,13 @@ actions:
               )
             ),
             "text_color": (
-              right_column_value_color
-              if right_column_value_color != "default"
-              else None
+              right_column_value_color_template|string
+              if right_column_value_color_template
+              else (
+                right_column_value_color
+                if right_column_value_color != "default"
+                else None
+              )
             ),
             "formatter": (
               right_column_value_formatter

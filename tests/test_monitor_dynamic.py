@@ -287,9 +287,11 @@ async def test_used_templated_inputs_if_set(
             "state": "binary_sensor.laundry_state",
             "icon": "washer",
             "left_column_value_template": "{{ states('sensor.left_value') }}",
+            "left_column_value_color_template": "{{ 'purple' }}",
             "left_column_header_template": "{{ states('sensor.left_header') }}",
             "left_column_footer_template": "{{ states('sensor.left_footer') }}",
             "right_column_value_template": "{{ states('sensor.right_value') }}",
+            "right_column_value_color_template": "{{ 'green' }}",
             "right_column_header_template": "{{ states('sensor.right_header') }}",
             "right_column_footer_template": "{{ states('sensor.right_footer') }}",
         },
@@ -309,6 +311,7 @@ async def test_used_templated_inputs_if_set(
                     header="Left header",
                     value=IsPartialDict(
                         value="10",
+                        text_color="purple",
                     ),
                     footer="Left footer",
                 ),
@@ -316,6 +319,7 @@ async def test_used_templated_inputs_if_set(
                     header="Right header",
                     value=IsPartialDict(
                         value="20",
+                        text_color="green",
                     ),
                     footer="Right footer",
                 ),
