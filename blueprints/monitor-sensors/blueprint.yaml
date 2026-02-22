@@ -265,7 +265,7 @@ actions:
         {% set left_column = {
           "header": state_translated(left_column_header) if has_value(left_column_header) else None,
           "value": {
-            "value": state_translated(left_column_value),
+            "value": state_translated(left_column_value) if state_attr(left_column_value, 'unit_of_measurement') is none else states(left_column_value, rounded=True, with_unit=True),
             "text_color": left_column_value_color if left_column_value_color != "default" else None,
             "formatter": left_column_value_formatter if left_column_value_formatter != "passthrough" else None,
           },
@@ -275,7 +275,7 @@ actions:
         {% set right_column = {
           "header": state_translated(right_column_header) if has_value(right_column_header) else None,
           "value": {
-            "value": state_translated(right_column_value),
+            "value": state_translated(right_column_value) if state_attr(right_column_value, 'unit_of_measurement') is none else states(right_column_value, rounded=True, with_unit=True),
             "text_color": right_column_value_color if right_column_value_color != "default" else None,
             "formatter": right_column_value_formatter if right_column_value_formatter != "passthrough" else None,
           },

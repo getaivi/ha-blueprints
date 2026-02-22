@@ -226,3 +226,48 @@ async def test_defaults_are_normalized(
             ),
         },
     )
+
+
+@pytest.mark.asyncio
+async def test_value_sensors_include_units_for_both_columns(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    hass.states.async_set("input_boolean.show_right", "on")
+    hass.states.async_set("sensor.left_value", "22", {"unit_of_measurement": "m²"})
+    hass.states.async_set("sensor.right_value", "55", {"unit_of_measurement": "°C"})
+
+    await harness.setup_blueprint(
+        "monitor-sensors",
+        {
+            "slug": "laundry",
+            "state": "binary_sensor.laundry_state",
+            "icon": "washer",
+            "left_column_value": "sensor.left_value",
+            "right_column_value": "sensor.right_value",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.laundry_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "laundry",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                left_column=IsPartialDict(
+                    value=IsPartialDict(
+                        value="22 m²",
+                    ),
+                ),
+                right_column=IsPartialDict(
+                    value=IsPartialDict(
+                        value="55 °C",
+                    ),
+                ),
+            ),
+        },
+    )
