@@ -165,7 +165,7 @@ blueprint:
             template:
 
         right_column_value:
-          name: Value
+          name: Value (sensor)
           default: sensor.dummy_non_existent_sensor
           selector:
             entity:
