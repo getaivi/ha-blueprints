@@ -41,8 +41,8 @@ blueprint:
             - label: Left
               value: left
 
-    left_column:
-      name: Left column
+    left_header:
+      name: "Left column: Header"
       icon: mdi:page-first
       input:
         left_column_header:
@@ -60,6 +60,10 @@ blueprint:
           selector:
             template:
 
+    left_value:
+      name: "Left column: Value"
+      icon: mdi:page-first
+      input:
         left_column_value:
           name: Value (sensor)
           default: sensor.dummy_non_existent_sensor
@@ -131,6 +135,10 @@ blueprint:
                 - label: Time until
                   value: time_until
 
+    left_footer:
+      name: "Left column: Footer"
+      icon: mdi:page-first
+      input:
         left_column_footer:
           name: Footer (sensor)
           default: sensor.dummy_non_existent_sensor
@@ -146,14 +154,18 @@ blueprint:
           selector:
             template:
 
+    left_visibility:
+      name: "Left column: visibility"
+      icon: mdi:page-first
+      input:
         left_column_visibility_condition:
           name: Visibility condition
           default: []
           selector:
             condition:
 
-    right_column:
-      name: Right column
+    right_header:
+      name: "Right column: Header"
       icon: mdi:page-last
       input:
         right_column_header:
@@ -171,6 +183,10 @@ blueprint:
           selector:
             template:
 
+    right_value:
+      name: "Right column: Value"
+      icon: mdi:page-last
+      input:
         right_column_value:
           name: Value (sensor)
           default: sensor.dummy_non_existent_sensor
@@ -242,6 +258,10 @@ blueprint:
                 - label: Time until
                   value: time_until
 
+    right_footer:
+      name: "Right column: Footer"
+      icon: mdi:page-last
+      input:
         right_column_footer:
           name: Footer
           default: sensor.dummy_non_existent_sensor
@@ -257,6 +277,10 @@ blueprint:
           selector:
             template:
 
+    right_visibility:
+      name: "Right column: Visibility"
+      icon: mdi:page-last
+      input:
         right_column_visibility_condition:
           name: Visibility condition
           default: []
