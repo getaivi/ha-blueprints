@@ -57,10 +57,11 @@ class AiviCallHistory:
 
         assert recorded_payloads == list(expected_payloads)
 
-    async def wait_for_new(self) -> None:
-        num_calls = len(self.calls)
-        while len(self.calls) == num_calls:  # noqa: ASYNC110
-            await asyncio.sleep(0.001)
+    async def wait_for_new(self, *, wait_for: int = 5) -> None:
+        async with asyncio.timeout(wait_for):
+            num_calls = len(self.calls)
+            while len(self.calls) == num_calls:  # noqa: ASYNC110
+                await asyncio.sleep(0.001)
 
 
 @dataclass
