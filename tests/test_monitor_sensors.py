@@ -145,3 +145,84 @@ async def test_blueprint_input_reflected_in_call(
             "content": expected_content,
         },
     )
+
+
+@pytest.mark.parametrize(
+    "input_overrides",
+    [
+        pytest.param(
+            {},
+            id="implicit_defaults",
+        ),
+        pytest.param(
+            {
+                "left_column_value_color": "default",
+                "left_column_value_formatter": "passthrough",
+                "right_column_value_color": "default",
+                "right_column_value_formatter": "passthrough",
+            },
+            id="explicit_defaults",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_defaults_are_normalized(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+    input_overrides: dict[str, str],
+) -> None:
+    hass.states.async_set("input_boolean.show_right", "on")
+
+    await harness.setup_blueprint(
+        "monitor-sensors",
+        {
+            "slug": "laundry",
+            "state": "binary_sensor.laundry_state",
+            "icon": "washer",
+            "left_column_value": "sensor.left_value",
+            "left_column_visibility_condition": [
+                {
+                    "condition": "state",
+                    "entity_id": "input_boolean.show_left",
+                    "state": "on",
+                }
+            ],
+            "right_column_value": "sensor.right_value",
+            "right_column_visibility_condition": [
+                {
+                    "condition": "state",
+                    "entity_id": "input_boolean.show_right",
+                    "state": "on",
+                }
+            ],
+            **input_overrides,
+        },
+    )
+
+    hass.states.async_set("binary_sensor.laundry_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "laundry",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                left_column=IsPartialDict(
+                    value=IsPartialDict(
+                        value="10",
+                        text_color=None,
+                        formatter=None,
+                    ),
+                ),
+                right_column=IsPartialDict(
+                    value=IsPartialDict(
+                        value="20",
+                        text_color=None,
+                        formatter=None,
+                    ),
+                ),
+            ),
+        },
+    )
