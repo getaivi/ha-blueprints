@@ -1,0 +1,467 @@
+blueprint:
+  name: |
+    Aivi: Monitor activity using sensors
+  description: |
+    Updates an Aivi Live Activity from Home Assistant sensors using the Monitor template.
+
+    See the [docs](https://docs.getaivi.app/templates/#monitor-template) for more info about the template.
+
+  domain: automation
+  homeassistant:
+    min_version: 2024.10.0
+
+  input:
+    slug:
+      name: Activity slug
+      description: The slug of the activity
+
+    state:
+      name: Aivi activity state
+      description: The sensor tells Aivi whether the activity is ongoing or not.
+      selector:
+        entity:
+          filter:
+            - domain: binary_sensor
+
+    icon:
+      name: Icon
+      default: ""
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon.
+        Example: washer.
+
+    primary_column:
+      name: Primary column
+      default: right
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: Right
+              value: right
+            - label: Left
+              value: left
+
+    custom_triggers:
+      name: Custom automation triggers
+      description: |
+        Template fields do not automatically create triggers.
+        Add one trigger for each entity referenced by a template field (usually a `state` trigger).
+        These triggers are evaluated together with the built-in sensor triggers.
+      default: []
+      selector:
+        trigger:
+
+    left_header:
+      name: "Left column: Header"
+      icon: mdi:page-first
+      input:
+        left_column_header:
+          name: Header (sensor)
+          default: sensor.dummy_non_existent_sensor
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        left_column_header_template:
+          name: Header (template)
+          description: |
+            Can be used instead of "Header (sensor)" to provide a templated header value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          default: ""
+          selector:
+            template:
+
+    left_value:
+      name: "Left column: Value"
+      icon: mdi:page-first
+      input:
+        left_column_value:
+          name: Value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        left_column_value_template:
+          name: Value (template)
+          description: |
+            Can be used instead of "Value (sensor)" to provide a templated value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          default: ""
+          selector:
+            template:
+
+        left_column_value_color:
+          name: Value color
+          default: default
+          selector:
+            select:
+              options:
+                - label: default
+                  value: default
+                - label: red
+                  value: red
+                - label: orange
+                  value: orange
+                - label: yellow
+                  value: yellow
+                - label: green
+                  value: green
+                - label: mint
+                  value: mint
+                - label: teal
+                  value: teal
+                - label: cyan
+                  value: cyan
+                - label: blue
+                  value: blue
+                - label: indigo
+                  value: indigo
+                - label: purple
+                  value: purple
+                - label: pink
+                  value: pink
+                - label: brown
+                  value: brown
+                - label: gray
+                  value: gray
+
+        left_column_value_color_template:
+          name: Value color (template)
+          description: |
+            Can be used instead of "Value color" to provide a templated value color.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          default: ""
+          selector:
+            template:
+
+        left_column_value_formatter:
+          name: Value formatter
+          default: passthrough
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Pass through
+                  value: passthrough
+                - label: Time since
+                  value: time_since
+                - label: Time until
+                  value: time_until
+
+    left_footer:
+      name: "Left column: Footer"
+      icon: mdi:page-first
+      input:
+        left_column_footer:
+          name: Footer (sensor)
+          default: sensor.dummy_non_existent_sensor
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        left_column_footer_template:
+          name: Footer (template)
+          description: |
+            Can be used instead of "Footer (sensor)" to provide a templated footer value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          default: ""
+          selector:
+            template:
+
+    left_visibility:
+      name: "Left column: visibility"
+      icon: mdi:page-first
+      input:
+        left_column_visibility_condition:
+          name: Visibility condition
+          default: []
+          selector:
+            condition:
+
+    right_header:
+      name: "Right column: Header"
+      icon: mdi:page-last
+      input:
+        right_column_header:
+          name: Header (sensor)
+          default: sensor.dummy_non_existent_sensor
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        right_column_header_template:
+          name: Header (template)
+          description: |
+            Can be used instead of "Header (sensor)" to provide a templated header value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          default: ""
+          selector:
+            template:
+
+    right_value:
+      name: "Right column: Value"
+      icon: mdi:page-last
+      input:
+        right_column_value:
+          name: Value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        right_column_value_template:
+          name: Value (template)
+          description: |
+            Can be used instead of "Value (sensor)" to provide a templated value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          default: ""
+          selector:
+            template:
+
+        right_column_value_color:
+          name: Value color
+          default: default
+          selector:
+            select:
+              options:
+                - label: default
+                  value: default
+                - label: red
+                  value: red
+                - label: orange
+                  value: orange
+                - label: yellow
+                  value: yellow
+                - label: green
+                  value: green
+                - label: mint
+                  value: mint
+                - label: teal
+                  value: teal
+                - label: cyan
+                  value: cyan
+                - label: blue
+                  value: blue
+                - label: indigo
+                  value: indigo
+                - label: purple
+                  value: purple
+                - label: pink
+                  value: pink
+                - label: brown
+                  value: brown
+                - label: gray
+                  value: gray
+
+        right_column_value_color_template:
+          name: Value color (template)
+          description: |
+            Can be used instead of "Value color" to provide a templated value color.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          default: ""
+          selector:
+            template:
+
+        right_column_value_formatter:
+          name: Value formatter
+          default: passthrough
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Pass through
+                  value: passthrough
+                - label: Time since
+                  value: time_since
+                - label: Time until
+                  value: time_until
+
+    right_footer:
+      name: "Right column: Footer"
+      icon: mdi:page-last
+      input:
+        right_column_footer:
+          name: Footer
+          default: sensor.dummy_non_existent_sensor
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        right_column_footer_template:
+          name: Footer (template)
+          description: |
+            Can be used instead of "Footer (sensor)" to provide a templated footer value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          default: ""
+          selector:
+            template:
+
+    right_visibility:
+      name: "Right column: Visibility"
+      icon: mdi:page-last
+      input:
+        right_column_visibility_condition:
+          name: Visibility condition
+          default: []
+          selector:
+            condition:
+
+triggers:
+  - trigger: state
+    entity_id:
+      - !input state
+      - !input left_column_header
+      - !input left_column_value
+      - !input left_column_footer
+      - !input right_column_header
+      - !input right_column_value
+      - !input right_column_footer
+
+  - triggers: !input custom_triggers
+
+variables:
+  slug: !input slug
+  state: !input state
+  icon: !input icon
+  primary_column: !input primary_column
+  left_column_header: !input left_column_header
+  left_column_header_template: !input left_column_header_template
+  left_column_value: !input left_column_value
+  left_column_value_template: !input left_column_value_template
+  left_column_value_color: !input left_column_value_color
+  left_column_value_color_template: !input left_column_value_color_template
+  left_column_value_formatter: !input left_column_value_formatter
+  left_column_footer: !input left_column_footer
+  left_column_footer_template: !input left_column_footer_template
+  right_column_header: !input right_column_header
+  right_column_header_template: !input right_column_header_template
+  right_column_value: !input right_column_value
+  right_column_value_template: !input right_column_value_template
+  right_column_value_color: !input right_column_value_color
+  right_column_value_color_template: !input right_column_value_color_template
+  right_column_value_formatter: !input right_column_value_formatter
+  right_column_footer: !input right_column_footer
+  right_column_footer_template: !input right_column_footer_template
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+actions:
+  - variables:
+      left_column_visibility: false
+      right_column_visibility: false
+
+  - choose:
+      - conditions: !input left_column_visibility_condition
+        sequence:
+          - variables:
+              left_column_visibility: true
+
+  - choose:
+      - conditions: !input right_column_visibility_condition
+        sequence:
+          - variables:
+              right_column_visibility: true
+
+  - action: rest_command.update_live_activity
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {% set ongoing = is_state(state, 'on') %}
+
+        {% set left_column = {
+          "header": (
+            state_translated(left_column_header)
+            if has_value(left_column_header)
+            else (left_column_header_template or None)
+          ),
+          "value": {
+            "value": (
+              left_column_value_template|string
+              if left_column_value_template
+              else (
+                state_translated(left_column_value)
+                if state_attr(left_column_value, 'unit_of_measurement') is none
+                else states(left_column_value, rounded=True, with_unit=True)
+              )
+            ),
+            "text_color": (
+              left_column_value_color_template|string
+              if left_column_value_color_template
+              else (
+                left_column_value_color
+                if left_column_value_color != "default"
+                else None
+              )
+            ),
+            "formatter": (
+              left_column_value_formatter
+              if left_column_value_formatter != "passthrough"
+              else None
+            ),
+          },
+          "footer": (
+            state_translated(left_column_footer)
+            if has_value(left_column_footer)
+            else (left_column_footer_template or None)
+          ),
+        } if (has_value(left_column_value) or left_column_value_template) and left_column_visibility else None %}
+
+        {% set right_column = {
+          "header": (
+            state_translated(right_column_header)
+            if has_value(right_column_header)
+            else (right_column_header_template or None)
+          ),
+          "value": {
+            "value": (
+              right_column_value_template|string
+              if right_column_value_template
+              else (
+                state_translated(right_column_value)
+                if state_attr(right_column_value, 'unit_of_measurement') is none
+                else states(right_column_value, rounded=True, with_unit=True)
+              )
+            ),
+            "text_color": (
+              right_column_value_color_template|string
+              if right_column_value_color_template
+              else (
+                right_column_value_color
+                if right_column_value_color != "default"
+                else None
+              )
+            ),
+            "formatter": (
+              right_column_value_formatter
+              if right_column_value_formatter != "passthrough"
+              else None
+            ),
+          },
+          "footer": (
+            state_translated(right_column_footer)
+            if has_value(right_column_footer)
+            else (right_column_footer_template or None)
+          ),
+        } if (has_value(right_column_value) or right_column_value_template) and right_column_visibility else None %}
+
+        {{ {
+          "state": "ONGOING" if ongoing else "IDLE",
+          "content": {
+            "template": "monitor",
+            "icon": icon or None,
+            "primary_column": primary_column,
+            "left_column": left_column,
+            "right_column": right_column,
+          }
+        } | to_json }}
