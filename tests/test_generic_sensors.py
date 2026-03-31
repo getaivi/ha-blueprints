@@ -130,6 +130,133 @@ async def test_blueprint_input_reflected_in_call(
 
 
 @pytest.mark.parametrize(
+    ("extra_inputs", "expected_content"),
+    [
+        pytest.param(
+            {},
+            {
+                "template": "generic",
+                "state": None,
+                "remaining_time": None,
+                "progress": 0.0,
+                "icon": "washer",
+            },
+            id="no_optional_inputs",
+        ),
+        pytest.param(
+            {"human_state": "sensor.dishwasher_human_state"},
+            {
+                "template": "generic",
+                "state": "Idle",
+                "remaining_time": None,
+                "progress": 0.0,
+                "icon": "washer",
+            },
+            id="without_eta",
+        ),
+        pytest.param(
+            {"eta": "sensor.dishwasher_relative_eta"},
+            {
+                "template": "generic",
+                "state": None,
+                "remaining_time": 0,
+                "progress": 0.0,
+                "icon": "washer",
+            },
+            id="without_human_state",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_works_without_optional_inputs(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+    extra_inputs: dict[str, str],
+    expected_content: dict[str, Any],
+) -> None:
+    """Optional inputs (human_state, eta) can be omitted without breaking the blueprint."""
+    await harness.setup_blueprint(
+        "generic-sensors",
+        {
+            "slug": "dishwasher",
+            "state": "binary_sensor.dishwasher_state",
+            "progress": "sensor.dishwasher_progress",
+            "icon": "washer",
+            **extra_inputs,
+        },
+    )
+
+    hass.states.async_set("binary_sensor.dishwasher_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "dishwasher",
+        {
+            "state": "ONGOING",
+            "content": expected_content,
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    ("entity", "value", "expected_content"),
+    [
+        pytest.param(
+            "sensor.dishwasher_human_state",
+            "Drying",
+            IsPartialDict(state="Drying"),
+            id="human_state",
+        ),
+        pytest.param(
+            "sensor.dishwasher_relative_eta",
+            "900",
+            IsPartialDict(remaining_time=900),
+            id="eta",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_optional_entity_change_triggers_automation(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+    entity: str,
+    value: str,
+    expected_content: Any,
+) -> None:
+    """Ensure that changes to optional entities (human_state, eta) trigger the automation."""
+    await harness.setup_blueprint(
+        "generic-sensors",
+        {
+            "slug": "dishwasher",
+            "state": "binary_sensor.dishwasher_state",
+            "progress": "sensor.dishwasher_progress",
+            "human_state": "sensor.dishwasher_human_state",
+            "eta": "sensor.dishwasher_relative_eta",
+            "icon": "washer",
+        },
+    )
+
+    # Start with the activity ongoing
+    hass.states.async_set("binary_sensor.dishwasher_state", "on")
+    await hass.async_block_till_done()
+
+    # Now change only the optional entity
+    with harness.record_calls() as calls:
+        hass.states.async_set(entity, value)
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "dishwasher",
+        {
+            "state": "ONGOING",
+            "content": expected_content,
+        },
+    )
+
+
+@pytest.mark.parametrize(
     ("device_class", "value", "expected_eta"),
     [
         pytest.param("timestamp", "2026-01-01T01:30:15Z", 5415, id="absolute_ts"),

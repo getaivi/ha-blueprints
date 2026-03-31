@@ -58,13 +58,25 @@ blueprint:
         An [SF Symbols](https://developer.apple.com/sf-symbols/) icon.
         Example: washer.
 
+trigger_variables:
+  human_state_trigger: !input human_state
+  eta_trigger: !input eta
+
 triggers:
   - trigger: state
     entity_id:
       - !input state
-      - !input human_state
       - !input progress
-      - !input eta
+  - trigger: event
+    event_type: state_changed
+    event_data:
+      entity_id: !input human_state
+    enabled: "{{ human_state_trigger is not none }}"
+  - trigger: event
+    event_type: state_changed
+    event_data:
+      entity_id: !input eta
+    enabled: "{{ eta_trigger is not none }}"
 
 variables:
   slug: !input slug
@@ -100,7 +112,7 @@ actions:
         {% endif %}
 
       eta: >-
-        {% if human_state_entity is none %}
+        {% if eta_entity is none %}
           {% set remaining = None %}
         {% elif state == "IDLE" %}
           {% set remaining = None %}
