@@ -174,7 +174,6 @@ async def test_works_without_optional_inputs(
     extra_inputs: dict[str, str],
     expected_content: dict[str, Any],
 ) -> None:
-    """Optional inputs (human_state, eta) can be omitted without breaking the blueprint."""
     await harness.setup_blueprint(
         "generic-sensors",
         {
@@ -225,7 +224,6 @@ async def test_optional_entity_change_triggers_automation(
     value: str,
     expected_content: Any,
 ) -> None:
-    """Ensure that changes to optional entities (human_state, eta) trigger the automation."""
     await harness.setup_blueprint(
         "generic-sensors",
         {
