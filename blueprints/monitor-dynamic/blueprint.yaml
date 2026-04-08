@@ -314,6 +314,20 @@ blueprint:
           selector:
             condition:
 
+    tap_url:
+      name: Tap URL
+      icon: mdi:link
+      input:
+        tap_url_template:
+          name: Tap URL (template)
+          default: ""
+          description: |
+            A Jinja2 template for the URL opened when the Live Activity is tapped.
+            Supports any URL scheme (https://, homeassistant://, etc.).
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
 triggers:
   - trigger: state
     entity_id:
@@ -350,6 +364,7 @@ variables:
   right_column_value_formatter: !input right_column_value_formatter
   right_column_footer: !input right_column_footer
   right_column_footer_template: !input right_column_footer_template
+  tap_url_template: !input tap_url_template
 
 mode: queued
 max: 10
@@ -455,6 +470,8 @@ actions:
           ),
         } if (has_value(right_column_value) or right_column_value_template) and right_column_visibility else None %}
 
+        {% set tap_url = tap_url_template|string if tap_url_template else None %}
+
         {{ {
           "state": "ONGOING" if ongoing else "IDLE",
           "content": {
@@ -463,5 +480,6 @@ actions:
             "primary_column": primary_column,
             "left_column": left_column,
             "right_column": right_column,
+            "tap_url": tap_url,
           }
         } | to_json }}

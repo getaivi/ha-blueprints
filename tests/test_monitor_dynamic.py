@@ -401,3 +401,34 @@ async def test_used_templated_inputs_if_set(
             ),
         },
     )
+
+
+@pytest.mark.asyncio
+async def test_tap_url_template(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await harness.setup_blueprint(
+        "monitor-dynamic",
+        {
+            "slug": "laundry",
+            "state": "binary_sensor.laundry_state",
+            "icon": "washer",
+            "tap_url_template": "{{ 'homeassistant://navigate/laundry' }}",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.laundry_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "laundry",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                tap_url="homeassistant://navigate/laundry",
+            ),
+        },
+    )

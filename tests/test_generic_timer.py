@@ -47,6 +47,7 @@ async def test_short_timer(
                 "remaining_time": 2,
                 "progress": 0.3333333333333333,
                 "icon": "timer",
+                "tap_url": None,
             },
         },
         {
@@ -57,6 +58,7 @@ async def test_short_timer(
                 "remaining_time": 1,
                 "progress": 0.6666666666666666,
                 "icon": "timer",
+                "tap_url": None,
             },
         },
         {
@@ -67,6 +69,7 @@ async def test_short_timer(
                 "remaining_time": 0,
                 "progress": 1,
                 "icon": "timer",
+                "tap_url": None,
             },
         },
         {
@@ -77,6 +80,7 @@ async def test_short_timer(
                 "remaining_time": None,
                 "progress": 1,
                 "icon": "timer",
+                "tap_url": None,
             },
         },
         deduplicate=False,
@@ -131,6 +135,7 @@ async def test_pausing(
                 "remaining_time": IsApprox(3600),
                 "progress": IsApprox(0.0),
                 "icon": "timer",
+                "tap_url": None,
             },
         },
     )
@@ -176,6 +181,7 @@ async def test_resuming(
                 "remaining_time": IsApprox(3600),
                 "progress": IsApprox(0.0, delta=0.001),
                 "icon": "timer",
+                "tap_url": None,
             },
         },
     )
@@ -280,5 +286,46 @@ async def test_blueprint_input_reflected_in_call(
         {
             "state": "ONGOING",
             "content": expected_content,
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_tap_url_template(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await async_setup_component(
+        hass,
+        domain="timer",
+        config={"timer": {"egg": {"duration": 3600}}},
+    )
+
+    await harness.setup_blueprint(
+        "generic-timer",
+        {
+            "slug": "egg",
+            "timer": "timer.egg",
+            "icon": "timer",
+            "tap_url_template": "{{ 'homeassistant://navigate/kitchen' }}",
+        },
+    )
+
+    with harness.record_calls() as calls:
+        await hass.services.async_call(
+            "timer",
+            "start",
+            {"entity_id": "timer.egg"},
+            blocking=True,
+        )
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "egg",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                tap_url="homeassistant://navigate/kitchen",
+            ),
         },
     )

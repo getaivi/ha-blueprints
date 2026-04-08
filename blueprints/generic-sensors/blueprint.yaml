@@ -58,6 +58,19 @@ blueprint:
         An [SF Symbols](https://developer.apple.com/sf-symbols/) icon.
         Example: washer.
 
+    tap_url:
+      name: Tap URL
+      icon: mdi:link
+      input:
+        tap_url_template:
+          name: Tap URL (template)
+          default: ""
+          description: |
+            A Jinja2 template for the URL opened when the Live Activity is tapped.
+            Supports any URL scheme (https://, homeassistant://, etc.).
+          selector:
+            template:
+
 trigger_variables:
   human_state_trigger: !input human_state
   eta_trigger: !input eta
@@ -85,6 +98,7 @@ variables:
   human_state_entity: !input human_state
   progress_entity: !input progress
   eta_entity: !input eta
+  tap_url_template: !input tap_url_template
 
 mode: queued
 max: 10
@@ -125,6 +139,10 @@ actions:
         {% endif %}
         {{ max(int(remaining), 0) if remaining is not none else None }}
 
+  - variables:
+      tap_url: >-
+        {{ tap_url_template|string if tap_url_template else None }}
+
   - action: rest_command.update_live_activity
     response_variable: aivi_response
     data:
@@ -137,6 +155,7 @@ actions:
             "state": {{ human_state|to_json }},
             "remaining_time": {{ eta|to_json }},
             "progress": {{ progress|to_json }},
-            "icon": {{ icon|to_json }}
+            "icon": {{ icon|to_json }},
+            "tap_url": {{ tap_url|to_json }}
           }
         }
