@@ -1,0 +1,932 @@
+blueprint:
+  name: |
+    Aivi: Progress activity using sensors (segmented)
+  description: |
+    Updates an Aivi Live Activity from Home Assistant sensors using the Progress template with a segmented progress bar.
+
+    See the [docs](https://docs.getaivi.app/templates/#progress-template) for more info about the template.
+
+  domain: automation
+  homeassistant:
+    min_version: 2025.7.0
+
+  input:
+    slug:
+      name: Activity slug
+      description: The slug of the activity.
+
+    state:
+      name: Aivi activity state
+      description: A binary sensor that tells Aivi whether the activity is ongoing (on) or idle (off).
+      selector:
+        entity:
+          filter:
+            - domain: binary_sensor
+
+    icon:
+      name: Icon
+      default: ""
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name.
+        Example: washer.
+
+    custom_triggers:
+      name: Custom automation triggers
+      description: |
+        Template fields do not automatically create triggers.
+        Add one trigger for each entity referenced by a template field (usually a `state` trigger).
+        These triggers are evaluated together with the built-in sensor triggers.
+      default: []
+      selector:
+        trigger:
+
+    progress:
+      name: Progress
+      input:
+        progress_value:
+          name: Progress value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: |
+            A sensor whose state represents the overall progress value.
+            Must be a number between 0 and 1. This is the fill level across all segments.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        progress_value_template:
+          name: Progress value (template)
+          default: ""
+          description: |
+            Can be used instead of "Progress value (sensor)" to provide a templated progress value.
+            Must evaluate to a number between 0 and 1.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        progress_display:
+          name: Display mode
+          default: split
+          description: |
+            How segments are rendered.
+            "Split" shows segments side by side.
+            "Layered" overlaps segments with gradient transitions.
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Split
+                  value: split
+                - label: Layered
+                  value: layered
+
+        segments:
+          name: Segments
+          description: |
+            The segments of the progress bar.
+            Between 1 and 4 segments are supported.
+            The "Size" values of all segments must sum to exactly 1.0.
+          selector:
+            object:
+              multiple: true
+              label_field: label
+              fields:
+                value:
+                  label: Size
+                  required: true
+                  selector:
+                    number:
+                      min: 0
+                      max: 1
+                      step: 0.01
+
+                fill_color:
+                  label: Fill color
+                  required: true
+                  selector:
+                    select:
+                      mode: dropdown
+                      options:
+                        - label: red
+                          value: red
+                        - label: orange
+                          value: orange
+                        - label: yellow
+                          value: yellow
+                        - label: green
+                          value: green
+                        - label: mint
+                          value: mint
+                        - label: teal
+                          value: teal
+                        - label: cyan
+                          value: cyan
+                        - label: blue
+                          value: blue
+                        - label: indigo
+                          value: indigo
+                        - label: purple
+                          value: purple
+                        - label: pink
+                          value: pink
+                        - label: brown
+                          value: brown
+                        - label: gray
+                          value: gray
+                        - label: gray2
+                          value: gray2
+                        - label: gray3
+                          value: gray3
+                        - label: gray4
+                          value: gray4
+                        - label: gray5
+                          value: gray5
+                        - label: gray6
+                          value: gray6
+
+                track_color:
+                  label: Track color
+                  selector:
+                    select:
+                      mode: dropdown
+                      options:
+                        - label: gray
+                          value: gray
+                        - label: red
+                          value: red
+                        - label: orange
+                          value: orange
+                        - label: yellow
+                          value: yellow
+                        - label: green
+                          value: green
+                        - label: mint
+                          value: mint
+                        - label: teal
+                          value: teal
+                        - label: cyan
+                          value: cyan
+                        - label: blue
+                          value: blue
+                        - label: indigo
+                          value: indigo
+                        - label: purple
+                          value: purple
+                        - label: pink
+                          value: pink
+                        - label: brown
+                          value: brown
+                        - label: gray2
+                          value: gray2
+                        - label: gray3
+                          value: gray3
+                        - label: gray4
+                          value: gray4
+                        - label: gray5
+                          value: gray5
+                        - label: gray6
+                          value: gray6
+
+                track_fill:
+                  label: Track fill
+                  selector:
+                    select:
+                      mode: dropdown
+                      options:
+                        - label: Solid
+                          value: solid
+                        - label: Hatched
+                          value: hatched
+
+                label:
+                  label: Label
+                  selector:
+                    text:
+
+    header_left:
+      name: Header left
+      icon: mdi:format-header-1
+      input:
+        header_left_sensor:
+          name: Value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state provides the header left text.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        header_left_template:
+          name: Value (template)
+          default: ""
+          description: |
+            Can be used instead of "Value (sensor)" to provide a templated value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        header_left_color:
+          name: Text color
+          default: default
+          description: The text color for the header left slot.
+          selector:
+            select:
+              options:
+                - label: default
+                  value: default
+                - label: red
+                  value: red
+                - label: orange
+                  value: orange
+                - label: yellow
+                  value: yellow
+                - label: green
+                  value: green
+                - label: mint
+                  value: mint
+                - label: teal
+                  value: teal
+                - label: cyan
+                  value: cyan
+                - label: blue
+                  value: blue
+                - label: indigo
+                  value: indigo
+                - label: purple
+                  value: purple
+                - label: pink
+                  value: pink
+                - label: brown
+                  value: brown
+                - label: gray
+                  value: gray
+                - label: gray2
+                  value: gray2
+                - label: gray3
+                  value: gray3
+                - label: gray4
+                  value: gray4
+                - label: gray5
+                  value: gray5
+                - label: gray6
+                  value: gray6
+
+        header_left_color_template:
+          name: Text color (template)
+          default: ""
+          description: |
+            Can be used instead of "Text color" to provide a templated color.
+            Must evaluate to a valid color name.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        header_left_formatter:
+          name: Value formatter
+          default: passthrough
+          description: |
+            Controls how the value is displayed.
+            "Time since" shows relative time elapsed since the value (expects a timestamp).
+            "Time until" shows relative time remaining until the value (expects a timestamp).
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Pass through
+                  value: passthrough
+                - label: Time since
+                  value: time_since
+                - label: Time until
+                  value: time_until
+
+    header_right:
+      name: Header right
+      icon: mdi:format-header-1
+      input:
+        header_right_sensor:
+          name: Value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state provides the header right text.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        header_right_template:
+          name: Value (template)
+          default: ""
+          description: |
+            Can be used instead of "Value (sensor)" to provide a templated value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        header_right_color:
+          name: Text color
+          default: default
+          description: The text color for the header right slot.
+          selector:
+            select:
+              options:
+                - label: default
+                  value: default
+                - label: red
+                  value: red
+                - label: orange
+                  value: orange
+                - label: yellow
+                  value: yellow
+                - label: green
+                  value: green
+                - label: mint
+                  value: mint
+                - label: teal
+                  value: teal
+                - label: cyan
+                  value: cyan
+                - label: blue
+                  value: blue
+                - label: indigo
+                  value: indigo
+                - label: purple
+                  value: purple
+                - label: pink
+                  value: pink
+                - label: brown
+                  value: brown
+                - label: gray
+                  value: gray
+                - label: gray2
+                  value: gray2
+                - label: gray3
+                  value: gray3
+                - label: gray4
+                  value: gray4
+                - label: gray5
+                  value: gray5
+                - label: gray6
+                  value: gray6
+
+        header_right_color_template:
+          name: Text color (template)
+          default: ""
+          description: |
+            Can be used instead of "Text color" to provide a templated color.
+            Must evaluate to a valid color name.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        header_right_formatter:
+          name: Value formatter
+          default: passthrough
+          description: |
+            Controls how the value is displayed.
+            "Time since" shows relative time elapsed since the value (expects a timestamp).
+            "Time until" shows relative time remaining until the value (expects a timestamp).
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Pass through
+                  value: passthrough
+                - label: Time since
+                  value: time_since
+                - label: Time until
+                  value: time_until
+
+    footer_left:
+      name: Footer left
+      icon: mdi:page-layout-footer
+      input:
+        footer_left_sensor:
+          name: Value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state provides the footer left text.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        footer_left_template:
+          name: Value (template)
+          default: ""
+          description: |
+            Can be used instead of "Value (sensor)" to provide a templated value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        footer_left_color:
+          name: Text color
+          default: default
+          description: The text color for the footer left slot.
+          selector:
+            select:
+              options:
+                - label: default
+                  value: default
+                - label: red
+                  value: red
+                - label: orange
+                  value: orange
+                - label: yellow
+                  value: yellow
+                - label: green
+                  value: green
+                - label: mint
+                  value: mint
+                - label: teal
+                  value: teal
+                - label: cyan
+                  value: cyan
+                - label: blue
+                  value: blue
+                - label: indigo
+                  value: indigo
+                - label: purple
+                  value: purple
+                - label: pink
+                  value: pink
+                - label: brown
+                  value: brown
+                - label: gray
+                  value: gray
+                - label: gray2
+                  value: gray2
+                - label: gray3
+                  value: gray3
+                - label: gray4
+                  value: gray4
+                - label: gray5
+                  value: gray5
+                - label: gray6
+                  value: gray6
+
+        footer_left_color_template:
+          name: Text color (template)
+          default: ""
+          description: |
+            Can be used instead of "Text color" to provide a templated color.
+            Must evaluate to a valid color name.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        footer_left_formatter:
+          name: Value formatter
+          default: passthrough
+          description: |
+            Controls how the value is displayed.
+            "Time since" shows relative time elapsed since the value (expects a timestamp).
+            "Time until" shows relative time remaining until the value (expects a timestamp).
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Pass through
+                  value: passthrough
+                - label: Time since
+                  value: time_since
+                - label: Time until
+                  value: time_until
+
+    footer_right:
+      name: Footer right
+      icon: mdi:page-layout-footer
+      input:
+        footer_right_sensor:
+          name: Value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state provides the footer right text.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        footer_right_template:
+          name: Value (template)
+          default: ""
+          description: |
+            Can be used instead of "Value (sensor)" to provide a templated value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        footer_right_color:
+          name: Text color
+          default: default
+          description: The text color for the footer right slot.
+          selector:
+            select:
+              options:
+                - label: default
+                  value: default
+                - label: red
+                  value: red
+                - label: orange
+                  value: orange
+                - label: yellow
+                  value: yellow
+                - label: green
+                  value: green
+                - label: mint
+                  value: mint
+                - label: teal
+                  value: teal
+                - label: cyan
+                  value: cyan
+                - label: blue
+                  value: blue
+                - label: indigo
+                  value: indigo
+                - label: purple
+                  value: purple
+                - label: pink
+                  value: pink
+                - label: brown
+                  value: brown
+                - label: gray
+                  value: gray
+                - label: gray2
+                  value: gray2
+                - label: gray3
+                  value: gray3
+                - label: gray4
+                  value: gray4
+                - label: gray5
+                  value: gray5
+                - label: gray6
+                  value: gray6
+
+        footer_right_color_template:
+          name: Text color (template)
+          default: ""
+          description: |
+            Can be used instead of "Text color" to provide a templated color.
+            Must evaluate to a valid color name.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        footer_right_formatter:
+          name: Value formatter
+          default: passthrough
+          description: |
+            Controls how the value is displayed.
+            "Time since" shows relative time elapsed since the value (expects a timestamp).
+            "Time until" shows relative time remaining until the value (expects a timestamp).
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Pass through
+                  value: passthrough
+                - label: Time since
+                  value: time_since
+                - label: Time until
+                  value: time_until
+
+    compact_value:
+      name: Compact value
+      icon: mdi:island
+      input:
+        compact_value_sensor:
+          name: Value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: |
+            A sensor whose state provides the text shown in the Dynamic Island compact view.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        compact_value_template:
+          name: Value (template)
+          default: ""
+          description: |
+            Can be used instead of "Value (sensor)" to provide a templated value.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        compact_value_color:
+          name: Text color
+          default: default
+          description: The text color for the compact value.
+          selector:
+            select:
+              options:
+                - label: default
+                  value: default
+                - label: red
+                  value: red
+                - label: orange
+                  value: orange
+                - label: yellow
+                  value: yellow
+                - label: green
+                  value: green
+                - label: mint
+                  value: mint
+                - label: teal
+                  value: teal
+                - label: cyan
+                  value: cyan
+                - label: blue
+                  value: blue
+                - label: indigo
+                  value: indigo
+                - label: purple
+                  value: purple
+                - label: pink
+                  value: pink
+                - label: brown
+                  value: brown
+                - label: gray
+                  value: gray
+                - label: gray2
+                  value: gray2
+                - label: gray3
+                  value: gray3
+                - label: gray4
+                  value: gray4
+                - label: gray5
+                  value: gray5
+                - label: gray6
+                  value: gray6
+
+        compact_value_color_template:
+          name: Text color (template)
+          default: ""
+          description: |
+            Can be used instead of "Text color" to provide a templated color.
+            Must evaluate to a valid color name.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+        compact_value_formatter:
+          name: Value formatter
+          default: passthrough
+          description: |
+            Controls how the value is displayed.
+            "Time since" shows relative time elapsed since the value (expects a timestamp).
+            "Time until" shows relative time remaining until the value (expects a timestamp).
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Pass through
+                  value: passthrough
+                - label: Time since
+                  value: time_since
+                - label: Time until
+                  value: time_until
+
+    tap_url:
+      name: Tap URL
+      icon: mdi:link
+      input:
+        tap_url_template:
+          name: Tap URL (template)
+          default: ""
+          description: |
+            A Jinja2 template for the URL opened when the Live Activity is tapped.
+            Supports any URL scheme (https://, homeassistant://, etc.).
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+triggers:
+  - trigger: state
+    entity_id:
+      - !input state
+      - !input progress_value
+      - !input header_left_sensor
+      - !input header_right_sensor
+      - !input footer_left_sensor
+      - !input footer_right_sensor
+      - !input compact_value_sensor
+
+  - triggers: !input custom_triggers
+
+variables:
+  slug: !input slug
+  state: !input state
+  icon: !input icon
+  progress_value: !input progress_value
+  progress_value_template: !input progress_value_template
+  progress_display: !input progress_display
+  segments: !input segments
+  header_left_sensor: !input header_left_sensor
+  header_left_template: !input header_left_template
+  header_left_color: !input header_left_color
+  header_left_color_template: !input header_left_color_template
+  header_left_formatter: !input header_left_formatter
+  header_right_sensor: !input header_right_sensor
+  header_right_template: !input header_right_template
+  header_right_color: !input header_right_color
+  header_right_color_template: !input header_right_color_template
+  header_right_formatter: !input header_right_formatter
+  footer_left_sensor: !input footer_left_sensor
+  footer_left_template: !input footer_left_template
+  footer_left_color: !input footer_left_color
+  footer_left_color_template: !input footer_left_color_template
+  footer_left_formatter: !input footer_left_formatter
+  footer_right_sensor: !input footer_right_sensor
+  footer_right_template: !input footer_right_template
+  footer_right_color: !input footer_right_color
+  footer_right_color_template: !input footer_right_color_template
+  footer_right_formatter: !input footer_right_formatter
+  compact_value_sensor: !input compact_value_sensor
+  compact_value_template: !input compact_value_template
+  compact_value_color: !input compact_value_color
+  compact_value_color_template: !input compact_value_color_template
+  compact_value_formatter: !input compact_value_formatter
+  tap_url_template: !input tap_url_template
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+actions:
+  - action: rest_command.update_live_activity
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {% set ongoing = is_state(state, 'on') %}
+
+        {% set progress_val = (
+            progress_value_template|float(0)
+            if progress_value_template
+            else (
+                states(progress_value)|float(0)
+                if has_value(progress_value)
+                else 0
+            )
+        ) %}
+
+        {% set header_left = {
+          "value": (
+            header_left_template|string
+            if header_left_template
+            else (
+              state_translated(header_left_sensor)
+              if state_attr(header_left_sensor, 'unit_of_measurement') is none
+              else states(header_left_sensor, rounded=True, with_unit=True)
+            )
+          ),
+          "text_color": (
+            header_left_color_template|string
+            if header_left_color_template
+            else (
+              header_left_color
+              if header_left_color != "default"
+              else None
+            )
+          ),
+          "formatter": (
+            header_left_formatter
+            if header_left_formatter != "passthrough"
+            else None
+          ),
+        } if (has_value(header_left_sensor) or header_left_template) else None %}
+
+        {% set header_right = {
+          "value": (
+            header_right_template|string
+            if header_right_template
+            else (
+              state_translated(header_right_sensor)
+              if state_attr(header_right_sensor, 'unit_of_measurement') is none
+              else states(header_right_sensor, rounded=True, with_unit=True)
+            )
+          ),
+          "text_color": (
+            header_right_color_template|string
+            if header_right_color_template
+            else (
+              header_right_color
+              if header_right_color != "default"
+              else None
+            )
+          ),
+          "formatter": (
+            header_right_formatter
+            if header_right_formatter != "passthrough"
+            else None
+          ),
+        } if (has_value(header_right_sensor) or header_right_template) else None %}
+
+        {% set footer_left = {
+          "value": (
+            footer_left_template|string
+            if footer_left_template
+            else (
+              state_translated(footer_left_sensor)
+              if state_attr(footer_left_sensor, 'unit_of_measurement') is none
+              else states(footer_left_sensor, rounded=True, with_unit=True)
+            )
+          ),
+          "text_color": (
+            footer_left_color_template|string
+            if footer_left_color_template
+            else (
+              footer_left_color
+              if footer_left_color != "default"
+              else None
+            )
+          ),
+          "formatter": (
+            footer_left_formatter
+            if footer_left_formatter != "passthrough"
+            else None
+          ),
+        } if (has_value(footer_left_sensor) or footer_left_template) else None %}
+
+        {% set footer_right = {
+          "value": (
+            footer_right_template|string
+            if footer_right_template
+            else (
+              state_translated(footer_right_sensor)
+              if state_attr(footer_right_sensor, 'unit_of_measurement') is none
+              else states(footer_right_sensor, rounded=True, with_unit=True)
+            )
+          ),
+          "text_color": (
+            footer_right_color_template|string
+            if footer_right_color_template
+            else (
+              footer_right_color
+              if footer_right_color != "default"
+              else None
+            )
+          ),
+          "formatter": (
+            footer_right_formatter
+            if footer_right_formatter != "passthrough"
+            else None
+          ),
+        } if (has_value(footer_right_sensor) or footer_right_template) else None %}
+
+        {% set compact_val = {
+          "value": (
+            compact_value_template|string
+            if compact_value_template
+            else (
+              state_translated(compact_value_sensor)
+              if state_attr(compact_value_sensor, 'unit_of_measurement') is none
+              else states(compact_value_sensor, rounded=True, with_unit=True)
+            )
+          ),
+          "text_color": (
+            compact_value_color_template|string
+            if compact_value_color_template
+            else (
+              compact_value_color
+              if compact_value_color != "default"
+              else None
+            )
+          ),
+          "formatter": (
+            compact_value_formatter
+            if compact_value_formatter != "passthrough"
+            else None
+          ),
+        } if (has_value(compact_value_sensor) or compact_value_template) else None %}
+
+        {% set tap_url = tap_url_template|string if tap_url_template else None %}
+
+        {% set ns = namespace(segs=[]) %}
+        {% for seg in segments %}
+        {% set ns.segs = ns.segs + [{
+          "value": seg.value|float,
+          "fill_color": seg.fill_color,
+          "track_color": seg.track_color|default("gray", true),
+          "track_fill": seg.track_fill|default("solid", true),
+          "label": seg.label|default(None, true),
+        }] %}
+        {% endfor %}
+
+        {{ {
+          "state": "ONGOING" if ongoing else "IDLE",
+          "content": {
+            "template": "progress",
+            "icon": icon or None,
+            "header_left": header_left,
+            "header_right": header_right,
+            "progress": {
+              "style": "segmented",
+              "value": progress_val,
+              "display": progress_display,
+              "segments": ns.segs,
+            },
+            "footer_left": footer_left,
+            "footer_right": footer_right,
+            "compact_value": compact_val,
+            "tap_url": tap_url,
+          }
+        } | to_json }}
