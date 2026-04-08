@@ -128,6 +128,45 @@ async def test_progress_value_from_template(
 
 
 @pytest.mark.asyncio
+async def test_progress_value_template_reacts_to_entity_change(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    hass.states.async_set("sensor.raw_progress", "50")
+
+    await harness.setup_blueprint(
+        BLUEPRINT,
+        base_config(
+            progress_value_template="{{ states('sensor.raw_progress')|float / 100 }}",
+            custom_triggers=[
+                {
+                    "trigger": "state",
+                    "entity_id": "sensor.raw_progress",
+                }
+            ],
+        ),
+    )
+
+    hass.states.async_set("binary_sensor.activity_state", "on")
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    hass.states.async_set("sensor.raw_progress", "75")
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "test-activity",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                progress=IsPartialDict(value=0.75),
+            ),
+        },
+    )
+
+
+@pytest.mark.asyncio
 async def test_progress_color(
     hass: HomeAssistant,
     harness: AiviTestHarness,
