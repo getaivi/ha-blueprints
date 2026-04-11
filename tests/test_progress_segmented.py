@@ -392,34 +392,6 @@ async def test_reacts_to_slot_sensor_changes(
 
 
 @pytest.mark.asyncio
-async def test_tap_url_template(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(
-            tap_url_template="{{ 'homeassistant://navigate/printer' }}",
-        ),
-    )
-
-    hass.states.async_set("binary_sensor.activity_state", "on")
-
-    with harness.record_calls() as calls:
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "test-activity",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                tap_url="homeassistant://navigate/printer",
-            ),
-        },
-    )
-
-
-@pytest.mark.asyncio
 async def test_template_overrides(
     hass: HomeAssistant,
     harness: AiviTestHarness,
@@ -567,73 +539,53 @@ async def test_custom_triggers_support_template_inputs(
     )
 
 
-@pytest.mark.asyncio
-async def test_icon_defaults_to_none(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await harness.setup_blueprint(BLUEPRINT, base_config())
-
-    hass.states.async_set("binary_sensor.activity_state", "on")
-
-    with harness.record_calls() as calls:
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "test-activity",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(icon=None),
-        },
-    )
-
-
-@pytest.mark.asyncio
-async def test_template_takes_precedence_over_sensor(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(
-            header_left_sensor="sensor.header_left",
-            header_left_template="{{ 'From template' }}",
-        ),
-    )
-
-    hass.states.async_set("binary_sensor.activity_state", "on")
-
-    with harness.record_calls() as calls:
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "test-activity",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                header_left=IsPartialDict(value="From template"),
-            ),
-        },
-    )
-
-
 @pytest.mark.parametrize(
-    ("name", "value", "expected_slug", "expected_content"),
+    ("config_overrides", "expected_slug", "expected_content"),
     [
-        ("icon", "washer", None, IsPartialDict(icon="washer")),
-        ("slug", "my-washer", "my-washer", IsPartialDict()),
+        pytest.param(
+            {"icon": "washer"},
+            None,
+            IsPartialDict(icon="washer"),
+            id="icon",
+        ),
+        pytest.param(
+            {"slug": "my-washer"},
+            "my-washer",
+            IsPartialDict(),
+            id="slug",
+        ),
+        pytest.param(
+            {"tap_url_template": "{{ 'homeassistant://navigate/printer' }}"},
+            None,
+            IsPartialDict(tap_url="homeassistant://navigate/printer"),
+            id="tap_url",
+        ),
+        pytest.param(
+            {},
+            None,
+            IsPartialDict(icon=None),
+            id="icon_defaults_to_none",
+        ),
+        pytest.param(
+            {
+                "header_left_sensor": "sensor.header_left",
+                "header_left_template": "{{ 'From template' }}",
+            },
+            None,
+            IsPartialDict(header_left=IsPartialDict(value="From template")),
+            id="template_takes_precedence_over_sensor",
+        ),
     ],
 )
 @pytest.mark.asyncio
 async def test_blueprint_input_reflected_in_call(
     hass: HomeAssistant,
     harness: AiviTestHarness,
-    name: str,
-    value: str,
+    config_overrides: dict[str, Any],
     expected_slug: str | None,
     expected_content: Any,
 ) -> None:
-    await harness.setup_blueprint(BLUEPRINT, base_config(**{name: value}))
+    await harness.setup_blueprint(BLUEPRINT, base_config(**config_overrides))
 
     hass.states.async_set("binary_sensor.activity_state", "on")
 

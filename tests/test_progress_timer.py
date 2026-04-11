@@ -277,114 +277,6 @@ async def test_eta_formatting_minutes_only(
 
 
 @pytest.mark.asyncio
-async def test_progress_color(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await async_setup_component(
-        hass,
-        domain="timer",
-        config={"timer": {"egg": {"duration": 3600}}},
-    )
-
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(progress_color="green"),
-    )
-
-    with harness.record_calls() as calls:
-        await hass.services.async_call(
-            "timer",
-            "start",
-            {"entity_id": "timer.egg"},
-            blocking=True,
-        )
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "egg",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                progress=IsPartialDict(color="green"),
-            ),
-        },
-    )
-
-
-@pytest.mark.asyncio
-async def test_header_left_color(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await async_setup_component(
-        hass,
-        domain="timer",
-        config={"timer": {"egg": {"duration": 3600}}},
-    )
-
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(header_left_color="purple"),
-    )
-
-    with harness.record_calls() as calls:
-        await hass.services.async_call(
-            "timer",
-            "start",
-            {"entity_id": "timer.egg"},
-            blocking=True,
-        )
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "egg",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                header_left=IsPartialDict(text_color="purple"),
-            ),
-        },
-    )
-
-
-@pytest.mark.asyncio
-async def test_header_right_color(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await async_setup_component(
-        hass,
-        domain="timer",
-        config={"timer": {"egg": {"duration": 3600}}},
-    )
-
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(header_right_color="green"),
-    )
-
-    with harness.record_calls() as calls:
-        await hass.services.async_call(
-            "timer",
-            "start",
-            {"entity_id": "timer.egg"},
-            blocking=True,
-        )
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "egg",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                header_right=IsPartialDict(text_color="green"),
-            ),
-        },
-    )
-
-
-@pytest.mark.asyncio
 async def test_footer_left_sensor(
     hass: HomeAssistant,
     harness: AiviTestHarness,
@@ -422,142 +314,76 @@ async def test_footer_left_sensor(
     )
 
 
-@pytest.mark.asyncio
-async def test_footer_template(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await async_setup_component(
-        hass,
-        domain="timer",
-        config={"timer": {"egg": {"duration": 3600}}},
-    )
-
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(footer_right_template="{{ 'Templated' }}"),
-    )
-
-    with harness.record_calls() as calls:
-        await hass.services.async_call(
-            "timer",
-            "start",
-            {"entity_id": "timer.egg"},
-            blocking=True,
-        )
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "egg",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                footer_right=IsPartialDict(value="Templated"),
-            ),
-        },
-    )
-
-
-@pytest.mark.asyncio
-async def test_tap_url_template(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await async_setup_component(
-        hass,
-        domain="timer",
-        config={"timer": {"egg": {"duration": 3600}}},
-    )
-
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(
-            tap_url_template="{{ 'homeassistant://navigate/kitchen' }}",
-        ),
-    )
-
-    with harness.record_calls() as calls:
-        await hass.services.async_call(
-            "timer",
-            "start",
-            {"entity_id": "timer.egg"},
-            blocking=True,
-        )
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "egg",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                tap_url="homeassistant://navigate/kitchen",
-            ),
-        },
-    )
-
-
-@pytest.mark.asyncio
-async def test_icon_defaults_to_none(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await async_setup_component(
-        hass,
-        domain="timer",
-        config={"timer": {"egg": {"duration": 3600}}},
-    )
-
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        {
-            "slug": "egg",
-            "timer": "timer.egg",
-        },
-    )
-
-    with harness.record_calls() as calls:
-        await hass.services.async_call(
-            "timer",
-            "start",
-            {"entity_id": "timer.egg"},
-            blocking=True,
-        )
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "egg",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(icon=None),
-        },
-    )
-
-
 @pytest.mark.parametrize(
-    ("name", "value", "expected_slug", "expected_content"),
+    ("config_overrides", "expected_slug", "expected_content"),
     [
-        ("icon", "washer", None, IsPartialDict(icon="washer")),
-        ("slug", "oven", "oven", IsPartialDict()),
+        pytest.param(
+            {"icon": "washer"},
+            None,
+            IsPartialDict(icon="washer"),
+            id="icon",
+        ),
+        pytest.param(
+            {"slug": "oven"},
+            "oven",
+            IsPartialDict(),
+            id="slug",
+        ),
+        pytest.param(
+            {"progress_color": "green"},
+            None,
+            IsPartialDict(progress=IsPartialDict(color="green")),
+            id="progress_color",
+        ),
+        pytest.param(
+            {"header_left_color": "purple"},
+            None,
+            IsPartialDict(header_left=IsPartialDict(text_color="purple")),
+            id="header_left_color",
+        ),
+        pytest.param(
+            {"header_right_color": "green"},
+            None,
+            IsPartialDict(header_right=IsPartialDict(text_color="green")),
+            id="header_right_color",
+        ),
+        pytest.param(
+            {"footer_right_template": "{{ 'Templated' }}"},
+            None,
+            IsPartialDict(footer_right=IsPartialDict(value="Templated")),
+            id="footer_right_template",
+        ),
+        pytest.param(
+            {"tap_url_template": "{{ 'homeassistant://navigate/kitchen' }}"},
+            None,
+            IsPartialDict(tap_url="homeassistant://navigate/kitchen"),
+            id="tap_url",
+        ),
+        pytest.param(
+            {"icon": ""},
+            None,
+            IsPartialDict(icon=None),
+            id="icon_defaults_to_none",
+        ),
     ],
 )
 @pytest.mark.asyncio
 async def test_blueprint_input_reflected_in_call(
     hass: HomeAssistant,
     harness: AiviTestHarness,
-    name: str,
-    value: str,
+    config_overrides: dict[str, str],
     expected_slug: str | None,
     expected_content: Any,
 ) -> None:
     await async_setup_component(
         hass,
         domain="timer",
-        config={"timer": {"egg": {"duration": 3}}},
+        config={"timer": {"egg": {"duration": 3600}}},
     )
 
     await harness.setup_blueprint(
         BLUEPRINT,
-        base_config(**{name: value}),
+        base_config(**config_overrides),
     )
 
     with harness.record_calls() as calls:
