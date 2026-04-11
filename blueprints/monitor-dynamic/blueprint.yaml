@@ -128,6 +128,16 @@ blueprint:
                   value: brown
                 - label: gray
                   value: gray
+                - label: gray2
+                  value: gray2
+                - label: gray3
+                  value: gray3
+                - label: gray4
+                  value: gray4
+                - label: gray5
+                  value: gray5
+                - label: gray6
+                  value: gray6
 
         left_column_value_color_template:
           name: Value color (template)
@@ -259,6 +269,16 @@ blueprint:
                   value: brown
                 - label: gray
                   value: gray
+                - label: gray2
+                  value: gray2
+                - label: gray3
+                  value: gray3
+                - label: gray4
+                  value: gray4
+                - label: gray5
+                  value: gray5
+                - label: gray6
+                  value: gray6
 
         right_column_value_color_template:
           name: Value color (template)
