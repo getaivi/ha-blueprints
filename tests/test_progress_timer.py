@@ -313,6 +313,78 @@ async def test_progress_color(
 
 
 @pytest.mark.asyncio
+async def test_header_left_color(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await async_setup_component(
+        hass,
+        domain="timer",
+        config={"timer": {"egg": {"duration": 3600}}},
+    )
+
+    await harness.setup_blueprint(
+        BLUEPRINT,
+        base_config(header_left_color="purple"),
+    )
+
+    with harness.record_calls() as calls:
+        await hass.services.async_call(
+            "timer",
+            "start",
+            {"entity_id": "timer.egg"},
+            blocking=True,
+        )
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "egg",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                header_left=IsPartialDict(text_color="purple"),
+            ),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_header_right_color(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await async_setup_component(
+        hass,
+        domain="timer",
+        config={"timer": {"egg": {"duration": 3600}}},
+    )
+
+    await harness.setup_blueprint(
+        BLUEPRINT,
+        base_config(header_right_color="green"),
+    )
+
+    with harness.record_calls() as calls:
+        await hass.services.async_call(
+            "timer",
+            "start",
+            {"entity_id": "timer.egg"},
+            blocking=True,
+        )
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "egg",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                header_right=IsPartialDict(text_color="green"),
+            ),
+        },
+    )
+
+
+@pytest.mark.asyncio
 async def test_footer_left_sensor(
     hass: HomeAssistant,
     harness: AiviTestHarness,

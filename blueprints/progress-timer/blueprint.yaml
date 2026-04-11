@@ -53,6 +53,98 @@ blueprint:
             - domain: input_select
             - domain: text
 
+    header_left_color:
+      name: Header left color
+      default: default
+      description: The text color for the human-readable state in the header left slot.
+      selector:
+        select:
+          options:
+            - label: default
+              value: default
+            - label: red
+              value: red
+            - label: orange
+              value: orange
+            - label: yellow
+              value: yellow
+            - label: green
+              value: green
+            - label: mint
+              value: mint
+            - label: teal
+              value: teal
+            - label: cyan
+              value: cyan
+            - label: blue
+              value: blue
+            - label: indigo
+              value: indigo
+            - label: purple
+              value: purple
+            - label: pink
+              value: pink
+            - label: brown
+              value: brown
+            - label: gray
+              value: gray
+            - label: gray2
+              value: gray2
+            - label: gray3
+              value: gray3
+            - label: gray4
+              value: gray4
+            - label: gray5
+              value: gray5
+            - label: gray6
+              value: gray6
+
+    header_right_color:
+      name: Header right color
+      default: default
+      description: The text color for the remaining time in the header right slot.
+      selector:
+        select:
+          options:
+            - label: default
+              value: default
+            - label: red
+              value: red
+            - label: orange
+              value: orange
+            - label: yellow
+              value: yellow
+            - label: green
+              value: green
+            - label: mint
+              value: mint
+            - label: teal
+              value: teal
+            - label: cyan
+              value: cyan
+            - label: blue
+              value: blue
+            - label: indigo
+              value: indigo
+            - label: purple
+              value: purple
+            - label: pink
+              value: pink
+            - label: brown
+              value: brown
+            - label: gray
+              value: gray
+            - label: gray2
+              value: gray2
+            - label: gray3
+              value: gray3
+            - label: gray4
+              value: gray4
+            - label: gray5
+              value: gray5
+            - label: gray6
+              value: gray6
+
     progress_color:
       name: Progress bar color
       default: blue
@@ -432,6 +524,8 @@ variables:
   icon: !input icon
   timer_entity: !input timer
   human_state_entity: !input human_state
+  header_left_color: !input header_left_color
+  header_right_color: !input header_right_color
   progress_color: !input progress_color
   footer_left_sensor: !input footer_left_sensor
   footer_left_template: !input footer_left_template
@@ -593,12 +687,20 @@ actions:
                   "icon": icon or None,
                   "header_left": {
                     "value": human_state,
-                    "text_color": None,
+                    "text_color": (
+                      header_left_color
+                      if header_left_color != "default"
+                      else None
+                    ),
                     "formatter": None,
                   },
                   "header_right": {
                     "value": eta_formatted,
-                    "text_color": None,
+                    "text_color": (
+                      header_right_color
+                      if header_right_color != "default"
+                      else None
+                    ),
                     "formatter": None,
                   },
                   "progress": {
@@ -731,7 +833,11 @@ actions:
             "icon": icon or None,
             "header_left": {
               "value": human_state,
-              "text_color": None,
+              "text_color": (
+                header_left_color
+                if header_left_color != "default"
+                else None
+              ),
               "formatter": None,
             },
             "header_right": None,
