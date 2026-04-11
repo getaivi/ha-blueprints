@@ -55,6 +55,7 @@ async def test_reacts_to_state_changes(
                 "remaining_time": 3600,
                 "progress": 0.0,
                 "icon": "washer",
+                "tap_url": None,
             },
         },
     )
@@ -75,6 +76,7 @@ async def test_reacts_to_state_changes(
                 "remaining_time": None,
                 "progress": 1.0,
                 "icon": "washer",
+                "tap_url": None,
             },
         },
     )
@@ -140,6 +142,7 @@ async def test_blueprint_input_reflected_in_call(
                 "remaining_time": None,
                 "progress": 0.0,
                 "icon": "washer",
+                "tap_url": None,
             },
             id="no_optional_inputs",
         ),
@@ -151,6 +154,7 @@ async def test_blueprint_input_reflected_in_call(
                 "remaining_time": None,
                 "progress": 0.0,
                 "icon": "washer",
+                "tap_url": None,
             },
             id="without_eta",
         ),
@@ -162,6 +166,7 @@ async def test_blueprint_input_reflected_in_call(
                 "remaining_time": 0,
                 "progress": 0.0,
                 "icon": "washer",
+                "tap_url": None,
             },
             id="without_human_state",
         ),
@@ -298,5 +303,37 @@ async def test_calculates_remaining_time_correctly(
         {
             "state": "ONGOING",
             "content": IsPartialDict(remaining_time=expected_eta),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_tap_url_template(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await harness.setup_blueprint(
+        "generic-sensors",
+        {
+            "slug": "dishwasher",
+            "state": "binary_sensor.dishwasher_state",
+            "progress": "sensor.dishwasher_progress",
+            "icon": "washer",
+            "tap_url_template": "{{ 'homeassistant://navigate/kitchen' }}",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.dishwasher_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "dishwasher",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                tap_url="homeassistant://navigate/kitchen",
+            ),
         },
     )
