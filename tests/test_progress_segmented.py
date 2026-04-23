@@ -5,7 +5,7 @@ import pytest
 from dirty_equals import IsPartialDict
 from homeassistant.core import HomeAssistant
 
-from tests.helpers.aivi import AiviTestHarness
+from tests.helpers.aivi import AiviTestHarness, icon_obj
 
 BLUEPRINT = "progress-segmented"
 
@@ -545,7 +545,7 @@ async def test_custom_triggers_support_template_inputs(
         pytest.param(
             {"icon": "washer"},
             None,
-            IsPartialDict(icon="washer"),
+            IsPartialDict(icon=icon_obj("washer")),
             id="icon",
         ),
         pytest.param(
@@ -595,4 +595,44 @@ async def test_blueprint_input_reflected_in_call(
     calls.assert_calls(
         expected_slug or "test-activity",
         {"state": "ONGOING", "content": expected_content},
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_customization(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await harness.setup_blueprint(
+        BLUEPRINT,
+        base_config(
+            icon="thermometer.sun",
+            icon_rendering_mode="palette",
+            icon_primary_color="red",
+            icon_secondary_color="orange",
+            icon_tertiary_color="yellow",
+            icon_color_rendering="gradient",
+        ),
+    )
+
+    hass.states.async_set("binary_sensor.activity_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "test-activity",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                icon={
+                    "name": "thermometer.sun",
+                    "rendering_mode": "palette",
+                    "primary_color": "red",
+                    "secondary_color": "orange",
+                    "tertiary_color": "yellow",
+                    "color_rendering": "gradient",
+                },
+            ),
+        },
     )

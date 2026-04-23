@@ -6,7 +6,7 @@ from freezegun import freeze_time
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 
-from tests.helpers.aivi import AiviTestHarness
+from tests.helpers.aivi import AiviTestHarness, icon_obj
 
 
 @pytest.fixture(autouse=True)
@@ -54,7 +54,7 @@ async def test_reacts_to_state_changes(
                 "state": "In progress",
                 "remaining_time": 3600,
                 "progress": 0.0,
-                "icon": "washer",
+                "icon": icon_obj("washer"),
                 "tap_url": None,
             },
         },
@@ -75,7 +75,7 @@ async def test_reacts_to_state_changes(
                 "state": "Done",
                 "remaining_time": None,
                 "progress": 1.0,
-                "icon": "washer",
+                "icon": icon_obj("washer"),
                 "tap_url": None,
             },
         },
@@ -85,7 +85,7 @@ async def test_reacts_to_state_changes(
 @pytest.mark.parametrize(
     ("name", "value", "expected_slug", "expected_content"),
     [
-        ("icon", "circle.square", None, IsPartialDict(icon="circle.square")),
+        ("icon", "circle.square", None, IsPartialDict(icon=icon_obj("circle.square"))),
         ("slug", "oven", "oven", IsPartialDict()),
     ],
 )
@@ -141,7 +141,7 @@ async def test_blueprint_input_reflected_in_call(
                 "state": None,
                 "remaining_time": None,
                 "progress": 0.0,
-                "icon": "washer",
+                "icon": icon_obj("washer"),
                 "tap_url": None,
             },
             id="no_optional_inputs",
@@ -153,7 +153,7 @@ async def test_blueprint_input_reflected_in_call(
                 "state": "Idle",
                 "remaining_time": None,
                 "progress": 0.0,
-                "icon": "washer",
+                "icon": icon_obj("washer"),
                 "tap_url": None,
             },
             id="without_eta",
@@ -165,7 +165,7 @@ async def test_blueprint_input_reflected_in_call(
                 "state": None,
                 "remaining_time": 0,
                 "progress": 0.0,
-                "icon": "washer",
+                "icon": icon_obj("washer"),
                 "tap_url": None,
             },
             id="without_human_state",
@@ -335,5 +335,77 @@ async def test_tap_url_template(
             "content": IsPartialDict(
                 tap_url="homeassistant://navigate/kitchen",
             ),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_customization(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await harness.setup_blueprint(
+        "generic-sensors",
+        {
+            "slug": "dishwasher",
+            "state": "binary_sensor.dishwasher_state",
+            "progress": "sensor.dishwasher_progress",
+            "icon": "thermometer.sun",
+            "icon_rendering_mode": "palette",
+            "icon_primary_color": "red",
+            "icon_secondary_color": "orange",
+            "icon_tertiary_color": "yellow",
+            "icon_color_rendering": "gradient",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.dishwasher_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "dishwasher",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                icon={
+                    "name": "thermometer.sun",
+                    "rendering_mode": "palette",
+                    "primary_color": "red",
+                    "secondary_color": "orange",
+                    "tertiary_color": "yellow",
+                    "color_rendering": "gradient",
+                },
+            ),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_empty_emits_null(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await harness.setup_blueprint(
+        "generic-sensors",
+        {
+            "slug": "dishwasher",
+            "state": "binary_sensor.dishwasher_state",
+            "progress": "sensor.dishwasher_progress",
+            "icon": "",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.dishwasher_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "dishwasher",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(icon=None),
         },
     )

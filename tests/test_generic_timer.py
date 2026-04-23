@@ -5,7 +5,7 @@ from dirty_equals import IsApprox, IsPartialDict
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 
-from tests.helpers.aivi import AiviTestHarness
+from tests.helpers.aivi import AiviTestHarness, icon_obj
 
 
 @pytest.mark.asyncio
@@ -46,7 +46,7 @@ async def test_short_timer(
                 "state": "In progress",
                 "remaining_time": 2,
                 "progress": 0.3333333333333333,
-                "icon": "timer",
+                "icon": icon_obj("timer"),
                 "tap_url": None,
             },
         },
@@ -57,7 +57,7 @@ async def test_short_timer(
                 "state": "In progress",
                 "remaining_time": 1,
                 "progress": 0.6666666666666666,
-                "icon": "timer",
+                "icon": icon_obj("timer"),
                 "tap_url": None,
             },
         },
@@ -68,7 +68,7 @@ async def test_short_timer(
                 "state": "In progress",
                 "remaining_time": 0,
                 "progress": 1,
-                "icon": "timer",
+                "icon": icon_obj("timer"),
                 "tap_url": None,
             },
         },
@@ -79,7 +79,7 @@ async def test_short_timer(
                 "state": "Done",
                 "remaining_time": None,
                 "progress": 1,
-                "icon": "timer",
+                "icon": icon_obj("timer"),
                 "tap_url": None,
             },
         },
@@ -134,7 +134,7 @@ async def test_pausing(
                 "state": "Paused",
                 "remaining_time": IsApprox(3600),
                 "progress": IsApprox(0.0),
-                "icon": "timer",
+                "icon": icon_obj("timer"),
                 "tap_url": None,
             },
         },
@@ -180,7 +180,7 @@ async def test_resuming(
                 "state": "In progress",
                 "remaining_time": IsApprox(3600),
                 "progress": IsApprox(0.0, delta=0.001),
-                "icon": "timer",
+                "icon": icon_obj("timer"),
                 "tap_url": None,
             },
         },
@@ -243,7 +243,7 @@ async def test_supports_custom_state_sensor(
 @pytest.mark.parametrize(
     ("name", "value", "expected_slug", "expected_content"),
     [
-        ("icon", "washer", None, IsPartialDict(icon="washer")),
+        ("icon", "washer", None, IsPartialDict(icon=icon_obj("washer"))),
         ("slug", "oven", "oven", IsPartialDict()),
     ],
 )
@@ -327,5 +327,95 @@ async def test_tap_url_template(
             "content": IsPartialDict(
                 tap_url="homeassistant://navigate/kitchen",
             ),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_customization(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await async_setup_component(
+        hass,
+        domain="timer",
+        config={"timer": {"egg": {"duration": 3600}}},
+    )
+
+    await harness.setup_blueprint(
+        "generic-timer",
+        {
+            "slug": "egg",
+            "timer": "timer.egg",
+            "icon": "thermometer.sun",
+            "icon_rendering_mode": "palette",
+            "icon_primary_color": "red",
+            "icon_secondary_color": "orange",
+            "icon_tertiary_color": "yellow",
+            "icon_color_rendering": "gradient",
+        },
+    )
+
+    with harness.record_calls() as calls:
+        await hass.services.async_call(
+            "timer",
+            "start",
+            {"entity_id": "timer.egg"},
+            blocking=True,
+        )
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "egg",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                icon={
+                    "name": "thermometer.sun",
+                    "rendering_mode": "palette",
+                    "primary_color": "red",
+                    "secondary_color": "orange",
+                    "tertiary_color": "yellow",
+                    "color_rendering": "gradient",
+                },
+            ),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_empty_emits_null(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await async_setup_component(
+        hass,
+        domain="timer",
+        config={"timer": {"egg": {"duration": 3600}}},
+    )
+
+    await harness.setup_blueprint(
+        "generic-timer",
+        {
+            "slug": "egg",
+            "timer": "timer.egg",
+            "icon": "",
+        },
+    )
+
+    with harness.record_calls() as calls:
+        await hass.services.async_call(
+            "timer",
+            "start",
+            {"entity_id": "timer.egg"},
+            blocking=True,
+        )
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "egg",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(icon=None),
         },
     )

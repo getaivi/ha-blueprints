@@ -41,6 +41,123 @@ blueprint:
       description: |
         An [SF Symbols](https://developer.apple.com/sf-symbols/) icon. Example: washer.
 
+    icon_customization:
+      name: Icon customization
+      icon: mdi:palette
+      description: |
+        Advanced rendering options for the SF Symbol icon. Leave at defaults
+        for the standard monochrome appearance.
+      input:
+        icon_rendering_mode:
+          name: Rendering mode
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Monochrome
+                  value: monochrome
+                - label: Hierarchical
+                  value: hierarchical
+                - label: Palette
+                  value: palette
+                - label: Multicolor
+                  value: multicolor
+
+        icon_primary_color:
+          name: Primary color
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_secondary_color:
+          name: Secondary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_tertiary_color:
+          name: Tertiary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_color_rendering:
+          name: Color rendering
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Flat
+                  value: flat
+                - label: Gradient
+                  value: gradient
+
     tap_url:
       name: Tap URL
       icon: mdi:link
@@ -68,6 +185,11 @@ triggers:
 variables:
   slug: !input slug
   icon: !input icon
+  icon_rendering_mode: !input icon_rendering_mode
+  icon_primary_color: !input icon_primary_color
+  icon_secondary_color: !input icon_secondary_color
+  icon_tertiary_color: !input icon_tertiary_color
+  icon_color_rendering: !input icon_color_rendering
   timer_entity: !input timer
   human_state_entity: !input human_state
   tap_url_template: !input tap_url_template
@@ -125,7 +247,14 @@ actions:
                   "state": {{ human_state|to_json }},
                   "remaining_time": {{ eta|to_json }},
                   "progress": {{ progress|to_json }},
-                  "icon": {{ icon|to_json }},
+                  "icon": {{ ({
+                    "name": icon,
+                    "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
+                    "primary_color": icon_primary_color if icon_primary_color != "default" else None,
+                    "secondary_color": icon_secondary_color if icon_secondary_color != "default" else None,
+                    "tertiary_color": icon_tertiary_color if icon_tertiary_color != "default" else None,
+                    "color_rendering": icon_color_rendering if icon_color_rendering != "default" else None,
+                  } if icon else None) | to_json }},
                   "tap_url": {{ tap_url|to_json }}
                 }
               }
@@ -172,7 +301,14 @@ actions:
             "state": {{ human_state|to_json }},
             "remaining_time": null,
             "progress": 1,
-            "icon": {{ icon|to_json }},
+            "icon": {{ ({
+              "name": icon,
+              "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
+              "primary_color": icon_primary_color if icon_primary_color != "default" else None,
+              "secondary_color": icon_secondary_color if icon_secondary_color != "default" else None,
+              "tertiary_color": icon_tertiary_color if icon_tertiary_color != "default" else None,
+              "color_rendering": icon_color_rendering if icon_color_rendering != "default" else None,
+            } if icon else None) | to_json }},
             "tap_url": {{ tap_url|to_json }}
           }
         }

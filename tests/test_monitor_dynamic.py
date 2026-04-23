@@ -5,7 +5,7 @@ import pytest
 from dirty_equals import IsPartialDict
 from homeassistant.core import HomeAssistant
 
-from tests.helpers.aivi import AiviTestHarness
+from tests.helpers.aivi import AiviTestHarness, icon_obj
 
 
 @pytest.fixture(autouse=True)
@@ -184,7 +184,7 @@ async def test_custom_triggers_support_template_inputs(
 @pytest.mark.parametrize(
     ("name", "value", "expected_slug", "expected_content"),
     [
-        ("icon", "flame", None, IsPartialDict(icon="flame")),
+        ("icon", "flame", None, IsPartialDict(icon=icon_obj("flame"))),
         ("primary_column", "left", None, IsPartialDict(primary_column="left")),
         ("slug", "boiler", "boiler", IsPartialDict()),
     ],
@@ -430,5 +430,74 @@ async def test_tap_url_template(
             "content": IsPartialDict(
                 tap_url="homeassistant://navigate/laundry",
             ),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_customization(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await harness.setup_blueprint(
+        "monitor-dynamic",
+        {
+            "slug": "laundry",
+            "state": "binary_sensor.laundry_state",
+            "icon": "thermometer.sun",
+            "icon_rendering_mode": "palette",
+            "icon_primary_color": "red",
+            "icon_secondary_color": "orange",
+            "icon_tertiary_color": "yellow",
+            "icon_color_rendering": "gradient",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.laundry_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "laundry",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                icon={
+                    "name": "thermometer.sun",
+                    "rendering_mode": "palette",
+                    "primary_color": "red",
+                    "secondary_color": "orange",
+                    "tertiary_color": "yellow",
+                    "color_rendering": "gradient",
+                },
+            ),
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_icon_empty_emits_null(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await harness.setup_blueprint(
+        "monitor-dynamic",
+        {
+            "slug": "laundry",
+            "state": "binary_sensor.laundry_state",
+        },
+    )
+
+    hass.states.async_set("binary_sensor.laundry_state", "on")
+
+    with harness.record_calls() as calls:
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "laundry",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(icon=None),
         },
     )
