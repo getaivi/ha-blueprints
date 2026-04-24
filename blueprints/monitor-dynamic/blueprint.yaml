@@ -30,6 +30,123 @@ blueprint:
         An [SF Symbols](https://developer.apple.com/sf-symbols/) icon.
         Example: washer.
 
+    icon_customization:
+      name: Icon customization
+      icon: mdi:palette
+      description: |
+        Advanced rendering options for the SF Symbol icon. Leave at defaults
+        for the standard monochrome appearance.
+      input:
+        icon_rendering_mode:
+          name: Rendering mode
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Monochrome
+                  value: monochrome
+                - label: Hierarchical
+                  value: hierarchical
+                - label: Palette
+                  value: palette
+                - label: Multicolor
+                  value: multicolor
+
+        icon_primary_color:
+          name: Primary color
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_secondary_color:
+          name: Secondary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_tertiary_color:
+          name: Tertiary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_color_rendering:
+          name: Color rendering
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Flat
+                  value: flat
+                - label: Gradient
+                  value: gradient
+
     primary_column:
       name: Primary column
       default: right
@@ -365,6 +482,11 @@ variables:
   slug: !input slug
   state: !input state
   icon: !input icon
+  icon_rendering_mode: !input icon_rendering_mode
+  icon_primary_color: !input icon_primary_color
+  icon_secondary_color: !input icon_secondary_color
+  icon_tertiary_color: !input icon_tertiary_color
+  icon_color_rendering: !input icon_color_rendering
   primary_column: !input primary_column
   left_column_header: !input left_column_header
   left_column_header_template: !input left_column_header_template
@@ -492,11 +614,20 @@ actions:
 
         {% set tap_url = tap_url_template|string if tap_url_template else None %}
 
+        {% set icon_obj = {
+          "name": icon,
+          "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
+          "primary_color": icon_primary_color if icon_primary_color != "default" else None,
+          "secondary_color": icon_secondary_color if icon_secondary_color != "default" else None,
+          "tertiary_color": icon_tertiary_color if icon_tertiary_color != "default" else None,
+          "color_rendering": icon_color_rendering if icon_color_rendering != "default" else None,
+        } if icon else None %}
+
         {{ {
           "state": "ONGOING" if ongoing else "IDLE",
           "content": {
             "template": "monitor",
-            "icon": icon or None,
+            "icon": icon_obj,
             "primary_column": primary_column,
             "left_column": left_column,
             "right_column": right_column,

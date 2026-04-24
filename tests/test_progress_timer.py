@@ -5,7 +5,7 @@ from dirty_equals import IsApprox, IsPartialDict
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 
-from tests.helpers.aivi import AiviTestHarness
+from tests.helpers.aivi import AiviTestHarness, icon_obj
 
 BLUEPRINT = "progress-timer"
 
@@ -320,7 +320,7 @@ async def test_footer_left_sensor(
         pytest.param(
             {"icon": "washer"},
             None,
-            IsPartialDict(icon="washer"),
+            IsPartialDict(icon=icon_obj("washer")),
             id="icon",
         ),
         pytest.param(
@@ -434,3 +434,53 @@ async def test_idle_state_includes_footer_slots(
     # Get the last call which should be IDLE
     idle_calls = [c for c in calls.calls if "IDLE" in str(c.data.get("payload", ""))]
     assert len(idle_calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_icon_customization(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await async_setup_component(
+        hass,
+        domain="timer",
+        config={"timer": {"egg": {"duration": 3600}}},
+    )
+
+    await harness.setup_blueprint(
+        BLUEPRINT,
+        base_config(
+            icon="thermometer.sun",
+            icon_rendering_mode="palette",
+            icon_primary_color="red",
+            icon_secondary_color="orange",
+            icon_tertiary_color="yellow",
+            icon_color_rendering="gradient",
+        ),
+    )
+
+    with harness.record_calls() as calls:
+        await hass.services.async_call(
+            "timer",
+            "start",
+            {"entity_id": "timer.egg"},
+            blocking=True,
+        )
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "egg",
+        {
+            "state": "ONGOING",
+            "content": IsPartialDict(
+                icon={
+                    "name": "thermometer.sun",
+                    "rendering_mode": "palette",
+                    "primary_color": "red",
+                    "secondary_color": "orange",
+                    "tertiary_color": "yellow",
+                    "color_rendering": "gradient",
+                },
+            ),
+        },
+    )

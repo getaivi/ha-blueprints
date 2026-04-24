@@ -4,17 +4,68 @@ import json
 from collections.abc import Callable, Generator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal, TypedDict, Unpack
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import async_mock_service
+
+IconRenderingMode = Literal["monochrome", "hierarchical", "palette", "multicolor"]
+IconColorRendering = Literal["flat", "gradient"]
+IconColor = Literal[
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "mint",
+    "teal",
+    "cyan",
+    "blue",
+    "indigo",
+    "purple",
+    "pink",
+    "brown",
+    "gray",
+    "gray2",
+    "gray3",
+    "gray4",
+    "gray5",
+    "gray6",
+]
 
 
 def normalize_call_data(call_data: str | dict[str, Any]) -> dict[str, Any]:
     if isinstance(call_data, str):
         return json.loads(call_data)
     return call_data
+
+
+class IconOverrides(TypedDict, total=False):
+    rendering_mode: IconRenderingMode | None
+    primary_color: IconColor | None
+    secondary_color: IconColor | None
+    tertiary_color: IconColor | None
+    color_rendering: IconColorRendering | None
+
+
+class IconPayload(IconOverrides):
+    name: str
+
+
+def icon_obj(name: str, **overrides: Unpack[IconOverrides]) -> IconPayload:
+    """Expected shape of the icon object in a payload.
+
+    Matches the blueprint's emission: a dict with `name` plus all optional
+    fields defaulting to None. Pass overrides to populate specific fields.
+    """
+    return IconPayload(
+        name=name,
+        rendering_mode=overrides.get("rendering_mode"),
+        primary_color=overrides.get("primary_color"),
+        secondary_color=overrides.get("secondary_color"),
+        tertiary_color=overrides.get("tertiary_color"),
+        color_rendering=overrides.get("color_rendering"),
+    )
 
 
 class AiviAPIMock:
