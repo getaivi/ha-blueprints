@@ -44,6 +44,7 @@ async def test_reacts_to_sensor_changes(
             "content": {
                 "template": "budget",
                 "total": {"spent": 540.10, "budget": 1200.0},
+                "categories": [],
                 "currency": "USD",
                 "display": None,
                 "subtitle": value_obj("20 days left"),
@@ -105,6 +106,87 @@ async def test_no_budget_and_display_and_currency_normalization(
                 display="spent",
             ),
         },
+    )
+
+
+async def test_categories(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    hass.states.async_set("sensor.food_spending", "157.60")
+    hass.states.async_set("sensor.vehicle_spending", "98.70")
+    hass.states.async_set("sensor.hobby_spending", "unavailable")
+
+    await harness.setup_blueprint(
+        BLUEPRINT,
+        {
+            **base_config(),
+            "categories": [
+                {
+                    "label": "Food",
+                    "spent": "sensor.food_spending",
+                    "budget": 300,
+                    "icon": "fork.knife",
+                },
+                {
+                    "label": "Vehicle",
+                    "spent": "sensor.vehicle_spending",
+                    "color": "teal",
+                },
+                {
+                    "label": "Hobby",
+                    "spent": "sensor.hobby_spending",
+                },
+            ],
+            "watched": [
+                "sensor.food_spending",
+                "sensor.vehicle_spending",
+            ],
+        },
+    )
+
+    with harness.widgets.record_calls() as calls:
+        hass.states.async_set("sensor.food_spending", "160.00")
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "spending",
+        {
+            "content": IsPartialDict(
+                categories=[
+                    {
+                        "label": "Food",
+                        "spent": 160.0,
+                        "budget": 300,
+                        "icon": "fork.knife",
+                        "color": None,
+                    },
+                    {
+                        "label": "Vehicle",
+                        "spent": 98.7,
+                        "budget": None,
+                        "icon": None,
+                        "color": "teal",
+                    },
+                ],
+            ),
+        },
+    )
+
+
+async def test_categories_empty_by_default(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await harness.setup_blueprint(BLUEPRINT, base_config())
+
+    with harness.widgets.record_calls() as calls:
+        hass.states.async_set("sensor.monthly_spending", "540.10")
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "spending",
+        {"content": IsPartialDict(categories=[])},
     )
 
 

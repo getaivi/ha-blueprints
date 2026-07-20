@@ -4,7 +4,7 @@ blueprint:
   description: |
     Updates an Aivi Battery widget from Home Assistant battery sensors.
 
-    The Battery template shows up to four battery rings, one per device,
+    The Battery template shows up to eight battery rings, one per device,
     with an optional charging indicator.
     See the [docs](https://docs.getaivi.app/widgets/#battery-template) for more info about the template.
 
@@ -13,7 +13,7 @@ blueprint:
 
   domain: automation
   homeassistant:
-    min_version: 2024.10.0
+    min_version: 2025.7.0
 
   input:
     slug:
@@ -183,139 +183,47 @@ blueprint:
       selector:
         trigger:
 
-    device_1:
-      name: Device 1
-      icon: mdi:battery-medium
-      input:
-        device_1_name:
-          name: Name
-          description: The device name, e.g. "Robot vacuum".
+    devices:
+      name: Devices
+      description: |
+        One row per device, up to 8. "Name" is optional and falls back to the
+        sensor's friendly name, with any trailing "battery" stripped.
+      selector:
+        object:
+          multiple: true
+          label_field: name
+          fields:
+            name:
+              label: Name
+              selector:
+                text:
+            level:
+              label: Battery level (sensor)
+              required: true
+              selector:
+                entity:
+                  filter:
+                    - domain: sensor
+                      device_class: battery
+            charging:
+              label: Charging (binary sensor)
+              selector:
+                entity:
+                  filter:
+                    - domain: binary_sensor
+            icon:
+              label: Icon (SF Symbol)
+              selector:
+                text:
 
-        device_1_level:
-          name: Battery level (sensor)
-          description: A sensor whose state is the battery level in percent (0-100).
-          selector:
-            entity:
-              filter:
-                - domain: sensor
-
-        device_1_charging:
-          name: Charging (binary sensor)
-          default: binary_sensor.dummy_non_existent_sensor
-          description: An optional binary sensor that is on while the device charges.
-          selector:
-            entity:
-              filter:
-                - domain: binary_sensor
-
-        device_1_icon:
-          name: Icon
-          default: ""
-          description: |
-            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
-            for this device. Example: fan.fill.
-
-    device_2:
-      name: Device 2
-      icon: mdi:battery-medium
-      input:
-        device_2_name:
-          name: Name
-          default: ""
-          description: The device name, e.g. "Robot vacuum". Leave empty to skip this device.
-
-        device_2_level:
-          name: Battery level (sensor)
-          default: sensor.dummy_non_existent_sensor
-          description: A sensor whose state is the battery level in percent (0-100).
-          selector:
-            entity:
-              filter:
-                - domain: sensor
-
-        device_2_charging:
-          name: Charging (binary sensor)
-          default: binary_sensor.dummy_non_existent_sensor
-          description: An optional binary sensor that is on while the device charges.
-          selector:
-            entity:
-              filter:
-                - domain: binary_sensor
-
-        device_2_icon:
-          name: Icon
-          default: ""
-          description: |
-            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
-            for this device. Example: fan.fill.
-
-    device_3:
-      name: Device 3
-      icon: mdi:battery-medium
-      input:
-        device_3_name:
-          name: Name
-          default: ""
-          description: The device name, e.g. "Robot vacuum". Leave empty to skip this device.
-
-        device_3_level:
-          name: Battery level (sensor)
-          default: sensor.dummy_non_existent_sensor
-          description: A sensor whose state is the battery level in percent (0-100).
-          selector:
-            entity:
-              filter:
-                - domain: sensor
-
-        device_3_charging:
-          name: Charging (binary sensor)
-          default: binary_sensor.dummy_non_existent_sensor
-          description: An optional binary sensor that is on while the device charges.
-          selector:
-            entity:
-              filter:
-                - domain: binary_sensor
-
-        device_3_icon:
-          name: Icon
-          default: ""
-          description: |
-            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
-            for this device. Example: fan.fill.
-
-    device_4:
-      name: Device 4
-      icon: mdi:battery-medium
-      input:
-        device_4_name:
-          name: Name
-          default: ""
-          description: The device name, e.g. "Robot vacuum". Leave empty to skip this device.
-
-        device_4_level:
-          name: Battery level (sensor)
-          default: sensor.dummy_non_existent_sensor
-          description: A sensor whose state is the battery level in percent (0-100).
-          selector:
-            entity:
-              filter:
-                - domain: sensor
-
-        device_4_charging:
-          name: Charging (binary sensor)
-          default: binary_sensor.dummy_non_existent_sensor
-          description: An optional binary sensor that is on while the device charges.
-          selector:
-            entity:
-              filter:
-                - domain: binary_sensor
-
-        device_4_icon:
-          name: Icon
-          default: ""
-          description: |
-            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
-            for this device. Example: fan.fill.
+    watched:
+      name: Watched entities
+      description: |
+        Entities referenced in the rows above are not watched automatically.
+        Select them here so their changes trigger a widget update.
+      selector:
+        entity:
+          multiple: true
 
     tap_url:
       name: Tap URL
@@ -350,15 +258,7 @@ blueprint:
 
 triggers:
   - trigger: state
-    entity_id:
-      - !input device_1_level
-      - !input device_1_charging
-      - !input device_2_level
-      - !input device_2_charging
-      - !input device_3_level
-      - !input device_3_charging
-      - !input device_4_level
-      - !input device_4_charging
+    entity_id: !input watched
 
   - triggers: !input custom_triggers
 
@@ -373,22 +273,7 @@ variables:
   accent: !input accent
   tap_url_template: !input tap_url_template
   stale_after: !input stale_after
-  device_1_name: !input device_1_name
-  device_1_level: !input device_1_level
-  device_1_charging: !input device_1_charging
-  device_1_icon: !input device_1_icon
-  device_2_name: !input device_2_name
-  device_2_level: !input device_2_level
-  device_2_charging: !input device_2_charging
-  device_2_icon: !input device_2_icon
-  device_3_name: !input device_3_name
-  device_3_level: !input device_3_level
-  device_3_charging: !input device_3_charging
-  device_3_icon: !input device_3_icon
-  device_4_name: !input device_4_name
-  device_4_level: !input device_4_level
-  device_4_charging: !input device_4_charging
-  device_4_icon: !input device_4_icon
+  devices: !input devices
 
 mode: queued
 max: 10
@@ -396,46 +281,29 @@ max_exceeded: silent
 
 actions:
   - condition: template
-    value_template: "{{ has_value(device_1_level) or has_value(device_2_level) or has_value(device_3_level) or has_value(device_4_level) }}"
+    value_template: >-
+      {% set ns = namespace(any=false) %}
+      {% for d in devices if d.get('level') and has_value(d.level) %}
+      {% set ns.any = true %}
+      {% endfor %}
+      {{ ns.any }}
 
   - action: rest_command.update_widget
     response_variable: aivi_response
     data:
       slug: "{{ slug }}"
       payload: >-
-        {% set devices = [] %}
-        {% if has_value(device_1_level) and device_1_name %}
-        {% set devices = devices + [{
-          "name": device_1_name,
-          "level": min(max(states(device_1_level)|float(0), 0), 100),
-          "charging": is_state(device_1_charging, "on"),
-          "icon": device_1_icon if device_1_icon else None,
+        {% set ns = namespace(rows=[]) %}
+        {% for d in devices[:8] if d.get('level') and has_value(d.level) %}
+        {% set friendly = (state_attr(d.level, 'friendly_name') or d.level)
+           | regex_replace(find='\\s+battery$', replace='', ignorecase=True) %}
+        {% set ns.rows = ns.rows + [{
+          "name": d.get('name') or friendly,
+          "level": min(max(states(d.level)|float(0), 0), 100),
+          "charging": is_state(d.get('charging') or '', 'on'),
+          "icon": d.get('icon') or None,
         }] %}
-        {% endif %}
-        {% if has_value(device_2_level) and device_2_name %}
-        {% set devices = devices + [{
-          "name": device_2_name,
-          "level": min(max(states(device_2_level)|float(0), 0), 100),
-          "charging": is_state(device_2_charging, "on"),
-          "icon": device_2_icon if device_2_icon else None,
-        }] %}
-        {% endif %}
-        {% if has_value(device_3_level) and device_3_name %}
-        {% set devices = devices + [{
-          "name": device_3_name,
-          "level": min(max(states(device_3_level)|float(0), 0), 100),
-          "charging": is_state(device_3_charging, "on"),
-          "icon": device_3_icon if device_3_icon else None,
-        }] %}
-        {% endif %}
-        {% if has_value(device_4_level) and device_4_name %}
-        {% set devices = devices + [{
-          "name": device_4_name,
-          "level": min(max(states(device_4_level)|float(0), 0), 100),
-          "charging": is_state(device_4_charging, "on"),
-          "icon": device_4_icon if device_4_icon else None,
-        }] %}
-        {% endif %}
+        {% endfor %}
 
         {% set icon_obj = {
           "name": icon,
@@ -448,7 +316,7 @@ actions:
 
         {% set content = {
           "template": "battery",
-          "devices": devices,
+          "devices": ns.rows,
           "icon": icon_obj,
           "accent": accent if accent != "default" else None,
           "tap_url": tap_url_template|string if tap_url_template else None,

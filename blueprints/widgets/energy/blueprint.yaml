@@ -4,9 +4,9 @@ blueprint:
   description: |
     Updates an Aivi Energy widget from Home Assistant power sensors.
 
-    The Energy template shows the home energy picture at a glance:
-    generation, grid, battery, and home consumption. Configure at least
-    one of the four nodes.
+    The Energy template shows the home energy picture at a glance: up to
+    three generation sources, grid, battery, and home consumption.
+    Configure at least one node.
 
     Sign conventions: grid power is positive when importing and negative
     when exporting; battery power is positive when charging and negative
@@ -18,7 +18,7 @@ blueprint:
 
   domain: automation
   homeassistant:
-    min_version: 2024.10.0
+    min_version: 2025.7.0
 
   input:
     slug:
@@ -188,29 +188,73 @@ blueprint:
       selector:
         trigger:
 
-    solar:
-      name: Solar
-      icon: mdi:solar-power
-      input:
-        solar_power:
-          name: Power (sensor)
-          default: sensor.dummy_non_existent_sensor
-          description: |
-            A sensor whose state is the instantaneous power in watts.
-            Generation of any kind - solar, wind, hydro, generator.
-          selector:
-            entity:
-              filter:
-                - domain: sensor
+    sources:
+      name: Generation sources
+      description: |
+        One row per generation source - solar, wind, hydro, generator - up
+        to 3. Unnamed sources use the solar presentation. Power is in watts;
+        "Energy today" is in kWh.
+      default: []
+      selector:
+        object:
+          multiple: true
+          label_field: name
+          fields:
+            name:
+              label: Name
+              selector:
+                text:
+            power:
+              label: Power (sensor)
+              required: true
+              selector:
+                entity:
+                  filter:
+                    - domain: sensor
+            today:
+              label: Energy today (sensor)
+              selector:
+                entity:
+                  filter:
+                    - domain: sensor
+            icon:
+              label: Icon (SF Symbol)
+              selector:
+                text:
+            color:
+              label: Color
+              selector:
+                select:
+                  options:
+                    - default
+                    - red
+                    - orange
+                    - yellow
+                    - green
+                    - mint
+                    - teal
+                    - cyan
+                    - blue
+                    - indigo
+                    - purple
+                    - pink
+                    - brown
+                    - gray
+                    - gray2
+                    - gray3
+                    - gray4
+                    - gray5
+                    - gray6
 
-        solar_today:
-          name: Energy today (sensor)
-          default: sensor.dummy_non_existent_sensor
-          description: A sensor whose state is today's cumulative energy in kWh.
-          selector:
-            entity:
-              filter:
-                - domain: sensor
+    watched:
+      name: Watched entities
+      default: []
+      description: |
+        Entities referenced in the rows above are not watched automatically.
+        Select them here so their changes trigger a widget update.
+      selector:
+        entity:
+          multiple: true
 
     grid:
       name: Grid
@@ -318,14 +362,15 @@ blueprint:
 triggers:
   - trigger: state
     entity_id:
-      - !input solar_power
-      - !input solar_today
       - !input grid_power
       - !input grid_today
       - !input battery_power
       - !input battery_level
       - !input home_power
       - !input home_today
+
+  - trigger: state
+    entity_id: !input watched
 
   - triggers: !input custom_triggers
 
@@ -340,8 +385,7 @@ variables:
   accent: !input accent
   tap_url_template: !input tap_url_template
   stale_after: !input stale_after
-  solar_power: !input solar_power
-  solar_today: !input solar_today
+  sources: !input sources
   grid_power: !input grid_power
   grid_today: !input grid_today
   battery_power: !input battery_power
@@ -355,17 +399,31 @@ max_exceeded: silent
 
 actions:
   - condition: template
-    value_template: "{{ has_value(solar_power) or has_value(grid_power) or has_value(battery_power) or has_value(home_power) }}"
+    value_template: >-
+      {% set ns = namespace(any=false) %}
+      {% for s in sources if s.get('power') and has_value(s.power) %}
+      {% set ns.any = true %}
+      {% endfor %}
+      {{ ns.any
+         or has_value(grid_power)
+         or has_value(battery_power)
+         or has_value(home_power) }}
 
   - action: rest_command.update_widget
     response_variable: aivi_response
     data:
       slug: "{{ slug }}"
       payload: >-
-        {% set solar = {
-          "power": states(solar_power)|float(0),
-          "today": states(solar_today)|float(0) if has_value(solar_today) else None,
-        } if has_value(solar_power) else None %}
+        {% set ns = namespace(sources=[]) %}
+        {% for s in sources[:3] if s.get('power') and has_value(s.power) %}
+        {% set ns.sources = ns.sources + [{
+          "name": s.get('name') or None,
+          "power": states(s.power)|float(0),
+          "today": states(s.today)|float(0) if s.get('today') and has_value(s.today) else None,
+          "icon": s.get('icon') or None,
+          "color": s.get('color') if s.get('color', 'default') != 'default' else None,
+        }] %}
+        {% endfor %}
 
         {% set grid = {
           "power": states(grid_power)|float(0),
@@ -397,7 +455,7 @@ actions:
 
         {% set content = {
           "template": "energy",
-          "sources": [solar] if solar is not none else [],
+          "sources": ns.sources,
           "grid": grid,
           "battery": battery,
           "home": home,

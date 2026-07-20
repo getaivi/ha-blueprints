@@ -4,9 +4,8 @@ blueprint:
   description: |
     Updates an Aivi Budget widget from Home Assistant sensors.
 
-    The Budget template shows spending against a budget as a ring.
-    This blueprint drives the total; per-category breakdowns are
-    available through the Aivi API directly.
+    The Budget template shows spending against a budget as a ring, with
+    optional per-category breakdowns.
     See the [docs](https://docs.getaivi.app/widgets/#budget-template) for more info about the template.
 
     Requires the `rest_command.update_widget` REST command from the
@@ -14,7 +13,7 @@ blueprint:
 
   domain: automation
   homeassistant:
-    min_version: 2024.10.0
+    min_version: 2025.7.0
 
   input:
     slug:
@@ -245,6 +244,76 @@ blueprint:
             - label: Spent
               value: spent
 
+    categories:
+      name: Categories
+      description: |
+        Optional per-category breakdown, up to 6 rows. "Budget" left at 0
+        means the category has no budget of its own.
+      default: []
+      selector:
+        object:
+          multiple: true
+          label_field: label
+          fields:
+            label:
+              label: Label
+              required: true
+              selector:
+                text:
+            spent:
+              label: Spent (sensor)
+              required: true
+              selector:
+                entity:
+                  filter:
+                    - domain: sensor
+            budget:
+              label: Budget
+              selector:
+                number:
+                  min: 0
+                  max: 100000000
+                  step: any
+                  mode: box
+            icon:
+              label: Icon (SF Symbol)
+              selector:
+                text:
+            color:
+              label: Ring color
+              selector:
+                select:
+                  options:
+                    - default
+                    - red
+                    - orange
+                    - yellow
+                    - green
+                    - mint
+                    - teal
+                    - cyan
+                    - blue
+                    - indigo
+                    - purple
+                    - pink
+                    - brown
+                    - gray
+                    - gray2
+                    - gray3
+                    - gray4
+                    - gray5
+                    - gray6
+
+    watched:
+      name: Watched entities
+      default: []
+      description: |
+        Entities referenced in the rows above are not watched automatically.
+        Select them here so their changes trigger a widget update.
+      selector:
+        entity:
+          multiple: true
+
     subtitle:
       name: Subtitle
       icon: mdi:text-short
@@ -359,6 +428,9 @@ triggers:
       - !input budget_sensor
       - !input subtitle_sensor
 
+  - trigger: state
+    entity_id: !input watched
+
   - triggers: !input custom_triggers
 
 variables:
@@ -377,6 +449,7 @@ variables:
   budget_sensor: !input budget_sensor
   currency: !input currency
   display: !input display
+  categories: !input categories
   subtitle_sensor: !input subtitle_sensor
   subtitle_template: !input subtitle_template
   subtitle_color: !input subtitle_color
@@ -389,7 +462,8 @@ max_exceeded: silent
 
 actions:
   - condition: template
-    value_template: "{{ has_value(spent_sensor) }}"
+    value_template: >-
+      {{ has_value(spent_sensor) }}
 
   - action: rest_command.update_widget
     response_variable: aivi_response
@@ -422,6 +496,17 @@ actions:
           ),
         } if (has_value(subtitle_sensor) or subtitle_template) else None %}
 
+        {% set ns = namespace(cats=[]) %}
+        {% for c in categories[:6] if c.get('spent') and c.get('label') and has_value(c.spent) %}
+        {% set ns.cats = ns.cats + [{
+          "label": c.label,
+          "spent": states(c.spent)|float(0),
+          "budget": c.get('budget') if (c.get('budget') or 0) > 0 else None,
+          "icon": c.get('icon') or None,
+          "color": c.get('color') if c.get('color', 'default') != 'default' else None,
+        }] %}
+        {% endfor %}
+
         {% set icon_obj = {
           "name": icon,
           "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
@@ -443,6 +528,7 @@ actions:
             "spent": states(spent_sensor)|float(0),
             "budget": budget,
           },
+          "categories": ns.cats,
           "currency": currency|upper,
           "display": display if display != "default" else None,
           "subtitle": subtitle,

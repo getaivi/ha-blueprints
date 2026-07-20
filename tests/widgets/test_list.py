@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 import pytest
@@ -6,6 +7,7 @@ from homeassistant.core import HomeAssistant
 
 from tests.helpers.aivi import AiviTestHarness
 
+MAX_ROWS = 8
 BLUEPRINT = "widgets/list"
 
 
@@ -27,10 +29,15 @@ def setup_entities(hass: HomeAssistant) -> None:
 def base_config() -> dict[str, Any]:
     return {
         "slug": "home",
-        "row_1_label": "Front door",
-        "row_1_entity": "lock.front_door",
-        "row_1_color": "green",
-        "row_1_icon": "lock.fill",
+        "rows": [
+            {
+                "label": "Front door",
+                "entity": "lock.front_door",
+                "color": "green",
+                "icon": "lock.fill",
+            },
+        ],
+        "watched": ["lock.front_door"],
     }
 
 
@@ -41,12 +48,29 @@ async def test_reports_configured_rows(
     await harness.setup_blueprint(
         BLUEPRINT,
         {
-            **base_config(),
-            "row_2_label": "Humidity",
-            "row_2_entity": "sensor.hallway_humidity",
-            "row_3_label": "Mail",
-            "row_3_entity": "sensor.mail_delivered",
-            "row_3_formatter": "time_since",
+            "slug": "home",
+            "rows": [
+                {
+                    "label": "Front door",
+                    "entity": "lock.front_door",
+                    "color": "green",
+                    "icon": "lock.fill",
+                },
+                {
+                    "label": "Humidity",
+                    "entity": "sensor.hallway_humidity",
+                },
+                {
+                    "label": "Mail",
+                    "entity": "sensor.mail_delivered",
+                    "formatter": "time_since",
+                },
+            ],
+            "watched": [
+                "lock.front_door",
+                "sensor.hallway_humidity",
+                "sensor.mail_delivered",
+            ],
         },
     )
 
@@ -96,20 +120,51 @@ async def test_reports_configured_rows(
     )
 
 
+async def test_caps_at_eight_rows(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    for n in range(9):
+        hass.states.async_set(f"sensor.value_{n}", str(n))
+
+    await harness.setup_blueprint(
+        BLUEPRINT,
+        {
+            "slug": "home",
+            "rows": [
+                {"label": f"Row {n}", "entity": f"sensor.value_{n}"} for n in range(9)
+            ],
+            "watched": ["sensor.value_0"],
+        },
+    )
+
+    with harness.widgets.record_calls() as calls:
+        hass.states.async_set("sensor.value_0", "42")
+        await calls.wait_for_new()
+
+    payload = calls.calls[-1].data["payload"]
+    rows = json.loads(payload)["content"]["rows"]
+    assert len(rows) == MAX_ROWS
+    assert rows[-1]["label"] == "Row 7"
+
+
 async def test_skips_unavailable_rows(
     hass: HomeAssistant,
     harness: AiviTestHarness,
 ) -> None:
+    hass.states.async_set("sensor.hallway_humidity", "unavailable")
+
     await harness.setup_blueprint(
         BLUEPRINT,
         {
-            **base_config(),
-            "row_2_label": "Humidity",
-            "row_2_entity": "sensor.hallway_humidity",
+            "slug": "home",
+            "rows": [
+                {"label": "Front door", "entity": "lock.front_door"},
+                {"label": "Humidity", "entity": "sensor.hallway_humidity"},
+            ],
+            "watched": ["lock.front_door"],
         },
     )
-
-    hass.states.async_set("sensor.hallway_humidity", "unavailable")
 
     with harness.widgets.record_calls() as calls:
         hass.states.async_set("lock.front_door", "unlocked")
