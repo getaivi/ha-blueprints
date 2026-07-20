@@ -206,7 +206,7 @@ async def test_stale_after_included_when_set(
 
     recorded = calls.calls[-1]
     payload = json.loads(recorded.data["payload"])
-    assert payload["stale_after"] == 900
+    assert payload["stale_after"] == 900  # noqa: PLR2004
 
 
 async def test_stale_after_omitted_by_default(

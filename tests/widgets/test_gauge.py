@@ -104,9 +104,7 @@ async def test_value_template(
         BLUEPRINT,
         {
             "slug": "office",
-            "value_template": (
-                "{{ states('sensor.office_temperature')|float * 2 }}"
-            ),
+            "value_template": ("{{ states('sensor.office_temperature')|float * 2 }}"),
             "custom_triggers": [
                 {
                     "trigger": "state",

@@ -23,6 +23,14 @@ This repository is where the official Aivi Home Assistant blueprints are
 developed. For details on the available blueprints and how to use them, see the
 [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
 
+The blueprints are organized by what they drive:
+
+- [`blueprints/activities/`](blueprints/activities) — blueprints that update
+  Live Activities via `rest_command.update_live_activity`.
+- [`blueprints/widgets/`](blueprints/widgets) — blueprints that update
+  Home/Lock Screen widgets via `rest_command.update_widget`, one per widget
+  template.
+
 ## What is Aivi?
 
 Aivi is the simplest way to connect your devices to a real-time Live Activity

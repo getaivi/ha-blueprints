@@ -295,7 +295,10 @@ async def test_calculates_remaining_time_correctly(
         attributes={"device_class": device_class},
     )
 
-    with freeze_time("2026-01-01T00:00:00Z"), harness.activities.record_calls() as calls:
+    with (
+        freeze_time("2026-01-01T00:00:00Z"),
+        harness.activities.record_calls() as calls,
+    ):
         await hass.async_block_till_done()
 
     calls.assert_calls(
