@@ -1,0 +1,299 @@
+blueprint:
+  name: |
+    Aivi: Prices widget using a template
+  description: |
+    Updates an Aivi Prices widget from a Home Assistant template.
+
+    The Prices template charts a price timeline - dynamic electricity
+    tariffs and the like - and highlights the current period, so a
+    single nightly update stays correct all day.
+    See the [docs](https://docs.getaivi.app/widgets/#prices-template) for more info about the template.
+
+    Requires the `rest_command.update_widget` REST command from the
+    [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
+
+  domain: automation
+  homeassistant:
+    min_version: 2024.10.0
+
+  input:
+    slug:
+      name: Widget slug
+      description: The slug of the widget to update.
+
+    icon:
+      name: Icon
+      default: ""
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name.
+        Example: bolt.fill.
+
+    icon_customization:
+      name: Icon customization
+      icon: mdi:palette
+      description: |
+        Advanced rendering options for the SF Symbol icon. Leave at defaults
+        for the standard monochrome appearance.
+      input:
+        icon_rendering_mode:
+          name: Rendering mode
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Monochrome
+                  value: monochrome
+                - label: Hierarchical
+                  value: hierarchical
+                - label: Palette
+                  value: palette
+                - label: Multicolor
+                  value: multicolor
+
+        icon_primary_color:
+          name: Primary color
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_secondary_color:
+          name: Secondary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_tertiary_color:
+          name: Tertiary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_color_rendering:
+          name: Color rendering
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Flat
+                  value: flat
+                - label: Gradient
+                  value: gradient
+
+    accent:
+      name: Accent color
+      description: |
+        An explicit accent color that themes the whole widget on the device,
+        independent of the icon color.
+      default: default
+      selector:
+        select:
+          options:
+            - default
+            - red
+            - orange
+            - yellow
+            - green
+            - mint
+            - teal
+            - cyan
+            - blue
+            - indigo
+            - purple
+            - pink
+            - brown
+            - gray
+            - gray2
+            - gray3
+            - gray4
+            - gray5
+            - gray6
+
+    custom_triggers:
+      name: Custom automation triggers
+      description: |
+        Template fields do not automatically create triggers.
+        Add one trigger for each entity referenced by a template field (usually a `state` trigger).
+        These triggers are evaluated together with the built-in sensor triggers.
+      default: []
+      selector:
+        trigger:
+
+    entries:
+      name: Price entries
+      icon: mdi:chart-bar
+      input:
+        entries_template:
+          name: Entries (template)
+          description: |
+            A Jinja2 template that evaluates to a list of 1-48 price periods in
+            chronological order. Each period is a mapping with `start` (an ISO
+            timestamp), `price` (a number), and optionally `level` (`low`,
+            `medium`, or `high`). Each period lasts until the next one starts.
+
+            Example for a Nordpool sensor:
+
+            ```
+            [{% for e in (state_attr('sensor.nordpool', 'raw_today') or []) + (state_attr('sensor.nordpool', 'raw_tomorrow') or []) %}
+            {"start": "{{ e.start.isoformat() }}", "price": {{ e.value }}}{{ "," if not loop.last }}
+            {% endfor %}]
+            ```
+
+            Add matching triggers for the referenced entities in "Custom automation triggers".
+          selector:
+            template:
+
+    unit:
+      name: Unit
+      default: ""
+      description: The display unit, e.g. "ct/kWh". Prices are unit-agnostic numbers.
+
+    tap_url:
+      name: Tap URL
+      icon: mdi:link
+      input:
+        tap_url_template:
+          name: Tap URL (template)
+          default: ""
+          description: |
+            A Jinja2 template for the URL opened when the widget is tapped.
+            Supports any URL scheme (https://, homeassistant://, etc.).
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+    staleness:
+      name: Staleness
+      icon: mdi:clock-alert-outline
+      input:
+        stale_after:
+          name: Mark stale after
+          description: |
+            Marks the widget's data as stale when no update has arrived within
+            this many seconds. Set to 0 to disable. Minimum 60 seconds when enabled.
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 604800
+              unit_of_measurement: seconds
+              mode: box
+
+triggers:
+  - triggers: !input custom_triggers
+
+variables:
+  slug: !input slug
+  icon: !input icon
+  icon_rendering_mode: !input icon_rendering_mode
+  icon_primary_color: !input icon_primary_color
+  icon_secondary_color: !input icon_secondary_color
+  icon_tertiary_color: !input icon_tertiary_color
+  icon_color_rendering: !input icon_color_rendering
+  accent: !input accent
+  tap_url_template: !input tap_url_template
+  stale_after: !input stale_after
+  entries_template: !input entries_template
+  unit: !input unit
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+actions:
+  - condition: template
+    value_template: "{{ entries_template is list and entries_template | length > 0 }}"
+
+  - action: rest_command.update_widget
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {% set icon_obj = {
+          "name": icon,
+          "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
+          "primary_color": icon_primary_color if icon_primary_color != "default" else None,
+          "secondary_color": icon_secondary_color if icon_secondary_color != "default" else None,
+          "tertiary_color": icon_tertiary_color if icon_tertiary_color != "default" else None,
+          "color_rendering": icon_color_rendering if icon_color_rendering != "default" else None,
+        } if icon else None %}
+
+        {% set content = {
+          "template": "prices",
+          "entries": entries_template,
+          "unit": unit if unit else None,
+          "icon": icon_obj,
+          "accent": accent if accent != "default" else None,
+          "tap_url": tap_url_template|string if tap_url_template else None,
+        } %}
+
+        {% if stale_after|int(0) > 0 %}
+        {{ {"content": content, "stale_after": stale_after|int} | to_json }}
+        {% else %}
+        {{ {"content": content} | to_json }}
+        {% endif %}

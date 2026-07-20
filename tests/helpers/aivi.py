@@ -109,6 +109,20 @@ class Bounds:
         return slice(self.start, self.stop)
 
 
+def value_obj(
+    value: str,
+    *,
+    text_color: str | None = None,
+    formatter: str | None = None,
+) -> dict[str, Any]:
+    """Expected shape of a Value object in a payload.
+
+    Matches the blueprints' emission: a dict with `value` plus the optional
+    fields defaulting to None.
+    """
+    return {"value": value, "text_color": text_color, "formatter": formatter}
+
+
 class AiviRestCommandMock:
     """Mocks a single Aivi `rest_command` service and records its calls."""
 

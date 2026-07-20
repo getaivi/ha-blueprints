@@ -1,0 +1,461 @@
+blueprint:
+  name: |
+    Aivi: Battery widget using sensors
+  description: |
+    Updates an Aivi Battery widget from Home Assistant battery sensors.
+
+    The Battery template shows up to four battery rings, one per device,
+    with an optional charging indicator.
+    See the [docs](https://docs.getaivi.app/widgets/#battery-template) for more info about the template.
+
+    Requires the `rest_command.update_widget` REST command from the
+    [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
+
+  domain: automation
+  homeassistant:
+    min_version: 2024.10.0
+
+  input:
+    slug:
+      name: Widget slug
+      description: The slug of the widget to update.
+
+    icon:
+      name: Icon
+      default: ""
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name.
+        Example: battery.75percent.
+
+    icon_customization:
+      name: Icon customization
+      icon: mdi:palette
+      description: |
+        Advanced rendering options for the SF Symbol icon. Leave at defaults
+        for the standard monochrome appearance.
+      input:
+        icon_rendering_mode:
+          name: Rendering mode
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Monochrome
+                  value: monochrome
+                - label: Hierarchical
+                  value: hierarchical
+                - label: Palette
+                  value: palette
+                - label: Multicolor
+                  value: multicolor
+
+        icon_primary_color:
+          name: Primary color
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_secondary_color:
+          name: Secondary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_tertiary_color:
+          name: Tertiary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_color_rendering:
+          name: Color rendering
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Flat
+                  value: flat
+                - label: Gradient
+                  value: gradient
+
+    accent:
+      name: Accent color
+      description: |
+        An explicit accent color that themes the whole widget on the device,
+        independent of the icon color.
+      default: default
+      selector:
+        select:
+          options:
+            - default
+            - red
+            - orange
+            - yellow
+            - green
+            - mint
+            - teal
+            - cyan
+            - blue
+            - indigo
+            - purple
+            - pink
+            - brown
+            - gray
+            - gray2
+            - gray3
+            - gray4
+            - gray5
+            - gray6
+
+    custom_triggers:
+      name: Custom automation triggers
+      description: |
+        Template fields do not automatically create triggers.
+        Add one trigger for each entity referenced by a template field (usually a `state` trigger).
+        These triggers are evaluated together with the built-in sensor triggers.
+      default: []
+      selector:
+        trigger:
+
+    device_1:
+      name: Device 1
+      icon: mdi:battery-medium
+      input:
+        device_1_name:
+          name: Name
+          description: The device name, e.g. "Robot vacuum".
+
+        device_1_level:
+          name: Battery level (sensor)
+          description: A sensor whose state is the battery level in percent (0-100).
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        device_1_charging:
+          name: Charging (binary sensor)
+          default: binary_sensor.dummy_non_existent_sensor
+          description: An optional binary sensor that is on while the device charges.
+          selector:
+            entity:
+              filter:
+                - domain: binary_sensor
+
+        device_1_icon:
+          name: Icon
+          default: ""
+          description: |
+            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
+            for this device. Example: fan.fill.
+
+    device_2:
+      name: Device 2
+      icon: mdi:battery-medium
+      input:
+        device_2_name:
+          name: Name
+          default: ""
+          description: The device name, e.g. "Robot vacuum". Leave empty to skip this device.
+
+        device_2_level:
+          name: Battery level (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state is the battery level in percent (0-100).
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        device_2_charging:
+          name: Charging (binary sensor)
+          default: binary_sensor.dummy_non_existent_sensor
+          description: An optional binary sensor that is on while the device charges.
+          selector:
+            entity:
+              filter:
+                - domain: binary_sensor
+
+        device_2_icon:
+          name: Icon
+          default: ""
+          description: |
+            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
+            for this device. Example: fan.fill.
+
+    device_3:
+      name: Device 3
+      icon: mdi:battery-medium
+      input:
+        device_3_name:
+          name: Name
+          default: ""
+          description: The device name, e.g. "Robot vacuum". Leave empty to skip this device.
+
+        device_3_level:
+          name: Battery level (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state is the battery level in percent (0-100).
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        device_3_charging:
+          name: Charging (binary sensor)
+          default: binary_sensor.dummy_non_existent_sensor
+          description: An optional binary sensor that is on while the device charges.
+          selector:
+            entity:
+              filter:
+                - domain: binary_sensor
+
+        device_3_icon:
+          name: Icon
+          default: ""
+          description: |
+            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
+            for this device. Example: fan.fill.
+
+    device_4:
+      name: Device 4
+      icon: mdi:battery-medium
+      input:
+        device_4_name:
+          name: Name
+          default: ""
+          description: The device name, e.g. "Robot vacuum". Leave empty to skip this device.
+
+        device_4_level:
+          name: Battery level (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state is the battery level in percent (0-100).
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        device_4_charging:
+          name: Charging (binary sensor)
+          default: binary_sensor.dummy_non_existent_sensor
+          description: An optional binary sensor that is on while the device charges.
+          selector:
+            entity:
+              filter:
+                - domain: binary_sensor
+
+        device_4_icon:
+          name: Icon
+          default: ""
+          description: |
+            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
+            for this device. Example: fan.fill.
+
+    tap_url:
+      name: Tap URL
+      icon: mdi:link
+      input:
+        tap_url_template:
+          name: Tap URL (template)
+          default: ""
+          description: |
+            A Jinja2 template for the URL opened when the widget is tapped.
+            Supports any URL scheme (https://, homeassistant://, etc.).
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+    staleness:
+      name: Staleness
+      icon: mdi:clock-alert-outline
+      input:
+        stale_after:
+          name: Mark stale after
+          description: |
+            Marks the widget's data as stale when no update has arrived within
+            this many seconds. Set to 0 to disable. Minimum 60 seconds when enabled.
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 604800
+              unit_of_measurement: seconds
+              mode: box
+
+triggers:
+  - trigger: state
+    entity_id:
+      - !input device_1_level
+      - !input device_1_charging
+      - !input device_2_level
+      - !input device_2_charging
+      - !input device_3_level
+      - !input device_3_charging
+      - !input device_4_level
+      - !input device_4_charging
+
+  - triggers: !input custom_triggers
+
+variables:
+  slug: !input slug
+  icon: !input icon
+  icon_rendering_mode: !input icon_rendering_mode
+  icon_primary_color: !input icon_primary_color
+  icon_secondary_color: !input icon_secondary_color
+  icon_tertiary_color: !input icon_tertiary_color
+  icon_color_rendering: !input icon_color_rendering
+  accent: !input accent
+  tap_url_template: !input tap_url_template
+  stale_after: !input stale_after
+  device_1_name: !input device_1_name
+  device_1_level: !input device_1_level
+  device_1_charging: !input device_1_charging
+  device_1_icon: !input device_1_icon
+  device_2_name: !input device_2_name
+  device_2_level: !input device_2_level
+  device_2_charging: !input device_2_charging
+  device_2_icon: !input device_2_icon
+  device_3_name: !input device_3_name
+  device_3_level: !input device_3_level
+  device_3_charging: !input device_3_charging
+  device_3_icon: !input device_3_icon
+  device_4_name: !input device_4_name
+  device_4_level: !input device_4_level
+  device_4_charging: !input device_4_charging
+  device_4_icon: !input device_4_icon
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+actions:
+  - condition: template
+    value_template: "{{ has_value(device_1_level) or has_value(device_2_level) or has_value(device_3_level) or has_value(device_4_level) }}"
+
+  - action: rest_command.update_widget
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {% set devices = [] %}
+        {% if has_value(device_1_level) and device_1_name %}
+        {% set devices = devices + [{
+          "name": device_1_name,
+          "level": min(max(states(device_1_level)|float(0), 0), 100),
+          "charging": is_state(device_1_charging, "on"),
+          "icon": device_1_icon if device_1_icon else None,
+        }] %}
+        {% endif %}
+        {% if has_value(device_2_level) and device_2_name %}
+        {% set devices = devices + [{
+          "name": device_2_name,
+          "level": min(max(states(device_2_level)|float(0), 0), 100),
+          "charging": is_state(device_2_charging, "on"),
+          "icon": device_2_icon if device_2_icon else None,
+        }] %}
+        {% endif %}
+        {% if has_value(device_3_level) and device_3_name %}
+        {% set devices = devices + [{
+          "name": device_3_name,
+          "level": min(max(states(device_3_level)|float(0), 0), 100),
+          "charging": is_state(device_3_charging, "on"),
+          "icon": device_3_icon if device_3_icon else None,
+        }] %}
+        {% endif %}
+        {% if has_value(device_4_level) and device_4_name %}
+        {% set devices = devices + [{
+          "name": device_4_name,
+          "level": min(max(states(device_4_level)|float(0), 0), 100),
+          "charging": is_state(device_4_charging, "on"),
+          "icon": device_4_icon if device_4_icon else None,
+        }] %}
+        {% endif %}
+
+        {% set icon_obj = {
+          "name": icon,
+          "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
+          "primary_color": icon_primary_color if icon_primary_color != "default" else None,
+          "secondary_color": icon_secondary_color if icon_secondary_color != "default" else None,
+          "tertiary_color": icon_tertiary_color if icon_tertiary_color != "default" else None,
+          "color_rendering": icon_color_rendering if icon_color_rendering != "default" else None,
+        } if icon else None %}
+
+        {% set content = {
+          "template": "battery",
+          "devices": devices,
+          "icon": icon_obj,
+          "accent": accent if accent != "default" else None,
+          "tap_url": tap_url_template|string if tap_url_template else None,
+        } %}
+
+        {% if stale_after|int(0) > 0 %}
+        {{ {"content": content, "stale_after": stale_after|int} | to_json }}
+        {% else %}
+        {{ {"content": content} | to_json }}
+        {% endif %}
