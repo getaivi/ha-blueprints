@@ -96,7 +96,7 @@ async def test_reacts_to_state_and_sensor_changes(
     hass.states.async_set("input_boolean.show_right", "on")
 
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -121,10 +121,10 @@ async def test_reacts_to_state_and_sensor_changes(
     )
 
     hass.states.async_set("binary_sensor.laundry_state", "on")
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         hass.states.async_set(changed_entity_id, changed_state)
         await asyncio.wait_for(calls.wait_for_new(), timeout=0.3)
 
@@ -145,7 +145,7 @@ async def test_custom_triggers_support_template_inputs(
     hass.states.async_set("sensor.template_left_header", "Templated left header")
 
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -165,7 +165,7 @@ async def test_custom_triggers_support_template_inputs(
 
     hass.states.async_set("sensor.template_left_header", "Updated templated header")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -199,7 +199,7 @@ async def test_blueprint_input_reflected_in_call(
     expected_content: Any,
 ) -> None:
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -210,7 +210,7 @@ async def test_blueprint_input_reflected_in_call(
 
     hass.states.async_set("binary_sensor.laundry_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -249,7 +249,7 @@ async def test_defaults_are_normalized(
     hass.states.async_set("input_boolean.show_right", "on")
 
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -276,7 +276,7 @@ async def test_defaults_are_normalized(
 
     hass.states.async_set("binary_sensor.laundry_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -313,7 +313,7 @@ async def test_value_sensors_include_units_if_set(
     hass.states.async_set("sensor.right_value", "55", {"unit_of_measurement": "°C"})
 
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -325,7 +325,7 @@ async def test_value_sensors_include_units_if_set(
 
     hass.states.async_set("binary_sensor.laundry_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -356,7 +356,7 @@ async def test_used_templated_inputs_if_set(
     hass.states.async_set("input_boolean.show_right", "on")
 
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -374,7 +374,7 @@ async def test_used_templated_inputs_if_set(
 
     hass.states.async_set("binary_sensor.laundry_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -409,7 +409,7 @@ async def test_tap_url_template(
     harness: AiviTestHarness,
 ) -> None:
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -420,7 +420,7 @@ async def test_tap_url_template(
 
     hass.states.async_set("binary_sensor.laundry_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -440,7 +440,7 @@ async def test_icon_customization(
     harness: AiviTestHarness,
 ) -> None:
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -455,7 +455,7 @@ async def test_icon_customization(
 
     hass.states.async_set("binary_sensor.laundry_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -482,7 +482,7 @@ async def test_icon_empty_emits_null(
     harness: AiviTestHarness,
 ) -> None:
     await harness.setup_blueprint(
-        "monitor-dynamic",
+        "activities/monitor-dynamic",
         {
             "slug": "laundry",
             "state": "binary_sensor.laundry_state",
@@ -491,7 +491,7 @@ async def test_icon_empty_emits_null(
 
     hass.states.async_set("binary_sensor.laundry_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(

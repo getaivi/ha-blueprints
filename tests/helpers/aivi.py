@@ -68,21 +68,6 @@ def icon_obj(name: str, **overrides: Unpack[IconOverrides]) -> IconPayload:
     )
 
 
-class AiviAPIMock:
-    def __init__(self, hass: HomeAssistant) -> None:
-        self.hass = hass
-        self._calls = async_mock_service(
-            self.hass,
-            "rest_command",
-            "update_live_activity",
-            response={"status": "200"},
-        )
-
-    @property
-    def calls(self) -> Sequence[ServiceCall]:
-        return self._calls
-
-
 class AiviCallHistory:
     def __init__(self, calls: Callable[[], Sequence[ServiceCall]]) -> None:
         self._calls = calls
@@ -124,10 +109,34 @@ class Bounds:
         return slice(self.start, self.stop)
 
 
+class AiviRestCommandMock:
+    """Mocks a single Aivi `rest_command` service and records its calls."""
+
+    def __init__(self, hass: HomeAssistant, service: str) -> None:
+        self.hass = hass
+        self._calls = async_mock_service(
+            self.hass,
+            "rest_command",
+            service,
+            response={"status": "200"},
+        )
+
+    @property
+    def calls(self) -> Sequence[ServiceCall]:
+        return self._calls
+
+    @contextmanager
+    def record_calls(self) -> Generator[AiviCallHistory]:
+        bounds = Bounds(start=len(self.calls))
+        yield AiviCallHistory(lambda: self.calls[bounds.as_slice()])
+        bounds.stop = len(self.calls)
+
+
 class AiviTestHarness:
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
-        self.mock = AiviAPIMock(self.hass)
+        self.activities = AiviRestCommandMock(self.hass, "update_live_activity")
+        self.widgets = AiviRestCommandMock(self.hass, "update_widget")
 
     async def setup_blueprint(self, name: str, config: dict[str, Any]) -> None:
         await async_setup_component(
@@ -142,9 +151,3 @@ class AiviTestHarness:
                 },
             },
         )
-
-    @contextmanager
-    def record_calls(self) -> Generator[AiviCallHistory]:
-        bounds = Bounds(start=len(self.mock.calls))
-        yield AiviCallHistory(lambda: self.mock.calls[bounds.as_slice()])
-        bounds.stop = len(self.mock.calls)

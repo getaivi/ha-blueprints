@@ -27,7 +27,7 @@ async def test_reacts_to_state_changes(
     harness: AiviTestHarness,
 ) -> None:
     await harness.setup_blueprint(
-        "generic-sensors",
+        "activities/generic-sensors",
         {
             "slug": "dishwasher",
             "state": "binary_sensor.dishwasher_state",
@@ -42,7 +42,7 @@ async def test_reacts_to_state_changes(
     hass.states.async_set("sensor.dishwasher_human_state", "In progress")
     hass.states.async_set("sensor.dishwasher_relative_eta", "3600")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.async_block_till_done()
 
     calls.assert_calls(
@@ -63,7 +63,7 @@ async def test_reacts_to_state_changes(
     hass.states.async_set("binary_sensor.dishwasher_state", "off")
     hass.states.async_set("sensor.dishwasher_human_state", "Done")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.async_block_till_done()
 
     calls.assert_calls(
@@ -105,7 +105,7 @@ async def test_blueprint_input_reflected_in_call(
     )
 
     await harness.setup_blueprint(
-        "generic-sensors",
+        "activities/generic-sensors",
         {
             "slug": "dishwasher",
             "state": "binary_sensor.dishwasher_state",
@@ -119,7 +119,7 @@ async def test_blueprint_input_reflected_in_call(
 
     hass.states.async_set("binary_sensor.dishwasher_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -180,7 +180,7 @@ async def test_works_without_optional_inputs(
     expected_content: dict[str, Any],
 ) -> None:
     await harness.setup_blueprint(
-        "generic-sensors",
+        "activities/generic-sensors",
         {
             "slug": "dishwasher",
             "state": "binary_sensor.dishwasher_state",
@@ -192,7 +192,7 @@ async def test_works_without_optional_inputs(
 
     hass.states.async_set("binary_sensor.dishwasher_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -230,7 +230,7 @@ async def test_optional_entity_change_triggers_automation(
     expected_content: Any,
 ) -> None:
     await harness.setup_blueprint(
-        "generic-sensors",
+        "activities/generic-sensors",
         {
             "slug": "dishwasher",
             "state": "binary_sensor.dishwasher_state",
@@ -246,7 +246,7 @@ async def test_optional_entity_change_triggers_automation(
     await hass.async_block_till_done()
 
     # Now change only the optional entity
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         hass.states.async_set(entity, value)
         await calls.wait_for_new()
 
@@ -276,7 +276,7 @@ async def test_calculates_remaining_time_correctly(
     expected_eta: int,
 ) -> None:
     await harness.setup_blueprint(
-        "generic-sensors",
+        "activities/generic-sensors",
         {
             "slug": "dishwasher",
             "state": "binary_sensor.dishwasher_state",
@@ -295,7 +295,7 @@ async def test_calculates_remaining_time_correctly(
         attributes={"device_class": device_class},
     )
 
-    with freeze_time("2026-01-01T00:00:00Z"), harness.record_calls() as calls:
+    with freeze_time("2026-01-01T00:00:00Z"), harness.activities.record_calls() as calls:
         await hass.async_block_till_done()
 
     calls.assert_calls(
@@ -313,7 +313,7 @@ async def test_tap_url_template(
     harness: AiviTestHarness,
 ) -> None:
     await harness.setup_blueprint(
-        "generic-sensors",
+        "activities/generic-sensors",
         {
             "slug": "dishwasher",
             "state": "binary_sensor.dishwasher_state",
@@ -325,7 +325,7 @@ async def test_tap_url_template(
 
     hass.states.async_set("binary_sensor.dishwasher_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -345,7 +345,7 @@ async def test_icon_customization(
     harness: AiviTestHarness,
 ) -> None:
     await harness.setup_blueprint(
-        "generic-sensors",
+        "activities/generic-sensors",
         {
             "slug": "dishwasher",
             "state": "binary_sensor.dishwasher_state",
@@ -361,7 +361,7 @@ async def test_icon_customization(
 
     hass.states.async_set("binary_sensor.dishwasher_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -388,7 +388,7 @@ async def test_icon_empty_emits_null(
     harness: AiviTestHarness,
 ) -> None:
     await harness.setup_blueprint(
-        "generic-sensors",
+        "activities/generic-sensors",
         {
             "slug": "dishwasher",
             "state": "binary_sensor.dishwasher_state",
@@ -399,7 +399,7 @@ async def test_icon_empty_emits_null(
 
     hass.states.async_set("binary_sensor.dishwasher_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(

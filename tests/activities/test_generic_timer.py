@@ -20,7 +20,7 @@ async def test_short_timer(
     )
 
     await harness.setup_blueprint(
-        "generic-timer",
+        "activities/generic-timer",
         {
             "slug": "egg",
             "timer": "timer.egg",
@@ -28,7 +28,7 @@ async def test_short_timer(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -99,7 +99,7 @@ async def test_pausing(
     )
 
     await harness.setup_blueprint(
-        "generic-timer",
+        "activities/generic-timer",
         {
             "slug": "egg",
             "timer": "timer.egg",
@@ -107,7 +107,7 @@ async def test_pausing(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -116,7 +116,7 @@ async def test_pausing(
         )
         await calls.wait_for_new()
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "pause",
@@ -153,7 +153,7 @@ async def test_resuming(
     )
 
     await harness.setup_blueprint(
-        "generic-timer",
+        "activities/generic-timer",
         {
             "slug": "egg",
             "timer": "timer.egg",
@@ -162,7 +162,7 @@ async def test_resuming(
     )
 
     for action in ["start", "pause", "start"]:
-        with harness.record_calls() as calls:
+        with harness.activities.record_calls() as calls:
             await hass.services.async_call(
                 "timer",
                 action,
@@ -201,7 +201,7 @@ async def test_supports_custom_state_sensor(
     )
 
     await harness.setup_blueprint(
-        "generic-timer",
+        "activities/generic-timer",
         {
             "slug": "egg",
             "timer": "timer.egg",
@@ -210,7 +210,7 @@ async def test_supports_custom_state_sensor(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -227,7 +227,7 @@ async def test_supports_custom_state_sensor(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         hass.states.async_set("sensor.human_state", "Still going")
         await calls.wait_for_new()
 
@@ -263,7 +263,7 @@ async def test_blueprint_input_reflected_in_call(
     )
 
     await harness.setup_blueprint(
-        "generic-timer",
+        "activities/generic-timer",
         {
             "slug": "egg",
             "timer": "timer.egg",
@@ -272,7 +272,7 @@ async def test_blueprint_input_reflected_in_call(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -302,7 +302,7 @@ async def test_tap_url_template(
     )
 
     await harness.setup_blueprint(
-        "generic-timer",
+        "activities/generic-timer",
         {
             "slug": "egg",
             "timer": "timer.egg",
@@ -311,7 +311,7 @@ async def test_tap_url_template(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -343,7 +343,7 @@ async def test_icon_customization(
     )
 
     await harness.setup_blueprint(
-        "generic-timer",
+        "activities/generic-timer",
         {
             "slug": "egg",
             "timer": "timer.egg",
@@ -356,7 +356,7 @@ async def test_icon_customization(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -395,7 +395,7 @@ async def test_icon_empty_emits_null(
     )
 
     await harness.setup_blueprint(
-        "generic-timer",
+        "activities/generic-timer",
         {
             "slug": "egg",
             "timer": "timer.egg",
@@ -403,7 +403,7 @@ async def test_icon_empty_emits_null(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
