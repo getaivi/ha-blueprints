@@ -31,6 +31,39 @@ The blueprints are organized by what they drive:
   Home/Lock Screen widgets via `rest_command.update_widget`, one per widget
   template.
 
+## Local development
+
+Run a disposable Home Assistant with every blueprint installed:
+
+```sh
+uv run nox -s dev
+```
+
+Then open <http://localhost:8123> and log in as `aivi` / `aivi` (onboarding is
+skipped automatically). What you get:
+
+- **All blueprints, live.** The repo's `blueprints/` directory is symlinked
+  into the instance, so edits land immediately — reload the YAML
+  configuration (or restart) to pick them up. No more uploading blueprints by
+  hand.
+- **A demo automation per blueprint** (see `dev/demo_automations.yaml`),
+  wired to controllable helper entities on the **Aivi Demo** dashboard:
+  toggle the washer, drag the temperature slider, start the tea timer.
+- **A local API sink** on port 8124 that pretty-prints every payload the
+  blueprints send, so you can inspect the exact wire format in the terminal.
+
+To push to the real Aivi API (and your actual devices) instead of the sink:
+
+```sh
+AIVI_ACTIVITY_URL='https://api.getaivi.app/activity/{{ slug }}' \
+AIVI_WIDGET_URL='https://api.getaivi.app/widget/{{ slug }}' \
+AIVI_AUTHORIZATION='Token <your token>' \
+uv run nox -s dev
+```
+
+The instance's state lives in gitignored files under `dev/` — delete
+`dev/.storage/` for a factory reset.
+
 ## What is Aivi?
 
 Aivi is the simplest way to connect your devices to a real-time Live Activity

@@ -1,0 +1,62 @@
+title: Aivi Demo
+views:
+  - title: Controls
+    icon: mdi:tune
+    cards:
+      - type: entities
+        title: Washer (Progress activity + widget)
+        entities:
+          - input_boolean.washer_running
+          - input_number.washer_progress
+          - input_select.washer_cycle
+          - input_number.washer_minutes_left
+
+      - type: entities
+        title: Tea timer (Progress activity)
+        entities:
+          - timer.tea
+
+      - type: entities
+        title: Climate (Status, Gauge, Trend, Monitor)
+        entities:
+          - input_boolean.monitor_active
+          - input_number.living_room_temperature
+          - input_select.comfort_level
+          - input_number.hallway_humidity
+
+      - type: entities
+        title: Home (List widget)
+        entities:
+          - input_boolean.front_door_locked
+          - input_button.mail_delivered
+
+      - type: entities
+        title: Batteries (Battery widget)
+        entities:
+          - input_number.vacuum_battery
+          - input_number.lock_battery
+          - input_boolean.lock_charging
+
+      - type: entities
+        title: Garbage (Countdown widget)
+        entities:
+          - input_datetime.garbage_pickup
+          - input_select.garbage_type
+
+      - type: entities
+        title: Energy (Energy + Prices widgets)
+        entities:
+          - input_number.solar_power
+          - input_number.solar_energy_today
+          - input_number.grid_power
+          - input_number.battery_power
+          - input_number.battery_soc
+          - input_number.home_power
+          - sensor.demo_energy_prices
+
+      - type: entities
+        title: Spending (Budget widget)
+        entities:
+          - input_number.monthly_spending
+          - input_number.food_spending
+          - input_number.vehicle_spending

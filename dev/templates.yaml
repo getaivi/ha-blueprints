@@ -1,0 +1,109 @@
+# Template entities adapting the input helpers into the sensor shapes the
+# blueprints expect (device classes, units, attributes).
+
+# Washer: state, 0-1 progress fraction, cycle, and a stable ETA that is only
+# recomputed when the inputs change (not every minute).
+- binary_sensor:
+    - name: Demo Washer Running
+      state: "{{ is_state('input_boolean.washer_running', 'on') }}"
+      device_class: running
+
+- sensor:
+    - name: Demo Washer Progress
+      state: "{{ (states('input_number.washer_progress')|float(0)) / 100 }}"
+
+    - name: Demo Washer Cycle
+      state: "{{ states('input_select.washer_cycle') }}"
+
+    - name: Demo Comfort
+      state: "{{ states('input_select.comfort_level') }}"
+
+    - name: Demo Hallway Humidity
+      unit_of_measurement: "%"
+      state: "{{ states('input_number.hallway_humidity') }}"
+
+    - name: Demo Garbage Type
+      state: "{{ states('input_select.garbage_type') }}"
+
+    - name: Demo Garbage Pickup
+      device_class: timestamp
+      state: >-
+        {{ state_attr('input_datetime.garbage_pickup', 'timestamp')
+           | as_datetime if state_attr('input_datetime.garbage_pickup', 'timestamp')
+           else none }}
+
+    - name: Demo Robot Vacuum Battery
+      device_class: battery
+      unit_of_measurement: "%"
+      state: "{{ states('input_number.vacuum_battery') }}"
+
+    - name: Demo Door Lock Battery
+      device_class: battery
+      unit_of_measurement: "%"
+      state: "{{ states('input_number.lock_battery') }}"
+
+    # A plausible daily electricity tariff curve, exposed the way price
+    # integrations (Nordpool & co) do: current price as the state, the full
+    # day as a `raw_today` attribute.
+    - name: Demo Energy Prices
+      unit_of_measurement: ct/kWh
+      state: >-
+        {% set prices = [
+          14.2, 12.8, 11.9, 11.4, 12.1, 13.6, 16.4, 19.8,
+          22.5, 21.7, 18.9, 16.2, 15.1, 14.8, 15.6, 17.2,
+          19.4, 22.8, 24.1, 21.3, 18.7, 16.9, 15.4, 14.6,
+        ] %}
+        {{ prices[now().hour] }}
+      attributes:
+        raw_today: >-
+          {% set prices = [
+            14.2, 12.8, 11.9, 11.4, 12.1, 13.6, 16.4, 19.8,
+            22.5, 21.7, 18.9, 16.2, 15.1, 14.8, 15.6, 17.2,
+            19.4, 22.8, 24.1, 21.3, 18.7, 16.9, 15.4, 14.6,
+          ] %}
+          {% set midnight = today_at() %}
+          {% set ns = namespace(items=[]) %}
+          {% for price in prices %}
+          {% set ns.items = ns.items + [{
+            "start": (midnight + timedelta(hours=loop.index0)).isoformat(),
+            "price": price,
+          }] %}
+          {% endfor %}
+          {{ ns.items }}
+
+- binary_sensor:
+    - name: Demo Front Door
+      device_class: lock
+      state: "{{ is_state('input_boolean.front_door_locked', 'off') }}"
+
+    - name: Demo Door Lock Charging
+      device_class: battery_charging
+      state: "{{ is_state('input_boolean.lock_charging', 'on') }}"
+
+# Trigger-based: the ETA only moves when the washer inputs change.
+- triggers:
+    - trigger: state
+      entity_id:
+        - input_number.washer_minutes_left
+        - input_boolean.washer_running
+  sensor:
+    - name: Demo Washer ETA
+      device_class: timestamp
+      state: >-
+        {{ (now() + timedelta(minutes=states('input_number.washer_minutes_left')|float(0))).isoformat()
+           if is_state('input_boolean.washer_running', 'on')
+           else none }}
+
+# Trigger-based: accumulates a rolling history of the temperature for the
+# Trend widget's sparkline.
+- triggers:
+    - trigger: state
+      entity_id: input_number.living_room_temperature
+  sensor:
+    - name: Demo Living Room Temperature
+      unit_of_measurement: °C
+      state: "{{ states('input_number.living_room_temperature') }}"
+      attributes:
+        history: >-
+          {{ ((this.attributes.get('history') or [])
+              + [states('input_number.living_room_temperature')|float(0)])[-24:] }}

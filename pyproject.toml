@@ -26,10 +26,17 @@ ignore = [
     "PLR0913",
 ]
 
+[tool.ruff.lint.per-file-ignores]
+# The dev launcher is a CLI script: prints, subprocess calls, and the
+# hardcoded local-only login are all intentional.
+"dev/run.py" = ["INP001", "S105", "S603", "T201"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 
 [dependency-groups]
 dev = [
     "freezegun>=1.5.2",
+    "home-assistant-frontend==20260107.0",
+    "pip>=25.3",
 ]
