@@ -115,7 +115,20 @@ jobs:
           blueprint, version = match.groups()
           major_version = version.split(".")[0]
 
-          blueprint_path = Path("blueprints") / blueprint / "blueprint.yaml"
+          # The published (flat) name doubles as the namespace: bare names
+          # are Live Activity blueprints, widget blueprints carry a
+          # `widget-` prefix. Tag `widget-progress-1.0.0` publishes
+          # blueprints/widgets/progress/ as widget-progress-v1.yaml.
+          if blueprint.startswith("widget-"):
+              blueprint_path = (
+                  Path("blueprints/widgets")
+                  / blueprint.removeprefix("widget-")
+                  / "blueprint.yaml"
+              )
+          else:
+              blueprint_path = (
+                  Path("blueprints/activities") / blueprint / "blueprint.yaml"
+              )
 
           if not blueprint_path.exists():
               print("Blueprint not found")

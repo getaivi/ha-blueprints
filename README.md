@@ -62,6 +62,21 @@ AIVI_HOST=https://api.getaivi.app AIVI_TOKEN=<your token> uv run nox -s dev
 The instance's state lives in gitignored files under `dev/` — delete
 `dev/.storage/` for a factory reset.
 
+## Releasing
+
+Blueprints are published to the flat registry at
+`https://ha.getaivi.app/blueprints/` by pushing a release tag:
+
+| Category | Repo path | Release tag | Published as |
+| --- | --- | --- | --- |
+| Activity | `blueprints/activities/<name>/` | `<name>-1.2.3` | `<name>-v1.yaml`, `<name>-v1.2.3.yaml` |
+| Widget | `blueprints/widgets/<name>/` | `widget-<name>-1.2.3` | `widget-<name>-v1.yaml`, `widget-<name>-v1.2.3.yaml` |
+
+Activity blueprints keep their historical unprefixed names, so existing
+import URLs never change. Widget blueprints live under the `widget-` prefix,
+which keeps the flat namespace collision-free; `tests/test_publishing.py`
+enforces that the two namespaces stay disjoint.
+
 ## What is Aivi?
 
 Aivi is the simplest way to connect your devices to a real-time Live Activity
