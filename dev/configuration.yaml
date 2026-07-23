@@ -11,15 +11,9 @@ system_health:
 logger:
   default: warning
 
+# The demo dashboard (ui-lovelace.yaml) is the default dashboard.
 lovelace:
-  mode: storage
-  dashboards:
-    aivi-demo:
-      mode: yaml
-      title: Aivi Demo
-      icon: mdi:widgets
-      filename: dashboard.yaml
-      show_in_sidebar: true
+  mode: yaml
 
 automation ui: !include automations.yaml
 automation demo: !include demo_automations.yaml

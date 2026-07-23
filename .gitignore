@@ -21,5 +21,4 @@ dev/tts/
 dev/backups/
 dev/.cloud/
 dev/.ha_run.lock
-dev/blueprints/script/
-dev/blueprints/template/
+dev/blueprints/

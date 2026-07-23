@@ -9,13 +9,14 @@ Usage: uv run nox -s dev  (or: uv run python dev/run.py)
   see the "Aivi Demo" dashboard.
 - Payloads are sent to a local sink on port 8124 that pretty-prints them.
   Point them at the real Aivi API instead by exporting:
-      AIVI_ACTIVITY_URL='https://api.getaivi.app/activity/{{ slug }}'
-      AIVI_WIDGET_URL='https://api.getaivi.app/widget/{{ slug }}'
-      AIVI_AUTHORIZATION='Token <your token>'
+      AIVI_HOST=https://api.getaivi.app
+      AIVI_TOKEN=<your token>
 """
 
 import json
+import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import threading
@@ -23,6 +24,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 CONFIG_DIR = pathlib.Path(__file__).parent
 STORAGE = CONFIG_DIR / ".storage"
+REPO_BLUEPRINTS = CONFIG_DIR.parent / "blueprints"
+MIRROR = CONFIG_DIR / "blueprints" / "automation" / "aivi"
 SINK_PORT = 8124
 USERNAME = PASSWORD = "aivi"
 
@@ -56,6 +59,36 @@ class SinkHandler(BaseHTTPRequestHandler):
         """Silence the default per-request access log."""
 
 
+def sync_blueprints() -> None:
+    """Mirror the repo's blueprints with real directories + per-file symlinks.
+
+    Home Assistant discovers blueprints with a recursive glob that does not
+    follow directory symlinks, so a single symlinked directory would keep
+    the Blueprints UI empty. Symlinked files inside real directories are
+    discovered fine and still reflect repo edits live.
+    """
+    if MIRROR.is_symlink():
+        MIRROR.unlink()
+    elif MIRROR.exists():
+        shutil.rmtree(MIRROR)
+    for src in sorted(REPO_BLUEPRINTS.glob("*/*/blueprint.yaml")):
+        dst = MIRROR / src.relative_to(REPO_BLUEPRINTS)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.symlink_to(src)
+
+
+def hass_environ() -> dict[str, str]:
+    """Compose the rest_command env vars from AIVI_HOST / AIVI_TOKEN."""
+    env = dict(os.environ)
+    if host := env.get("AIVI_HOST"):
+        host = host.rstrip("/")
+        env.setdefault("AIVI_ACTIVITY_URL", f"{host}/activity/{{{{ slug }}}}")
+        env.setdefault("AIVI_WIDGET_URL", f"{host}/widget/{{{{ slug }}}}")
+    if token := env.get("AIVI_TOKEN"):
+        env.setdefault("AIVI_AUTHORIZATION", f"Token {token}")
+    return env
+
+
 def seed_auth() -> None:
     """Create the login and skip onboarding on the very first run."""
     if STORAGE.exists():
@@ -79,18 +112,19 @@ def seed_auth() -> None:
 
 
 def main() -> int:
+    sync_blueprints()
     seed_auth()
 
     sink = ThreadingHTTPServer(("127.0.0.1", SINK_PORT), SinkHandler)
     threading.Thread(target=sink.serve_forever, daemon=True).start()
 
+    target = os.environ.get("AIVI_HOST", f"local sink on port {SINK_PORT}")
     print(
         "\n"
         "  Home Assistant:  http://localhost:8123  (login: aivi / aivi)\n"
-        f"  Aivi API sink:   http://localhost:{SINK_PORT}  "
-        "(payloads are printed below)\n"
-        "  Real API:        export AIVI_ACTIVITY_URL / AIVI_WIDGET_URL / "
-        "AIVI_AUTHORIZATION\n",
+        f"  Payloads go to:  {target}\n"
+        "  Real API:        export AIVI_HOST=https://api.getaivi.app "
+        "AIVI_TOKEN=<your token>\n",
         flush=True,
     )
 
@@ -98,6 +132,7 @@ def main() -> int:
         return subprocess.run(
             [sys.executable, "-m", "homeassistant", "-c", str(CONFIG_DIR)],
             check=False,
+            env=hass_environ(),
         ).returncode
     except KeyboardInterrupt:
         return 0
