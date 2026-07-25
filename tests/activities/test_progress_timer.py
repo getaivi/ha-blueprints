@@ -7,7 +7,7 @@ from homeassistant.setup import async_setup_component
 
 from tests.helpers.aivi import AiviTestHarness, icon_obj
 
-BLUEPRINT = "progress-timer"
+BLUEPRINT = "activities/progress-timer"
 
 
 def base_config(**overrides: Any) -> dict[str, Any]:
@@ -32,7 +32,7 @@ async def test_short_timer(
 
     await harness.setup_blueprint(BLUEPRINT, base_config())
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -93,7 +93,7 @@ async def test_pausing(
 
     await harness.setup_blueprint(BLUEPRINT, base_config())
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -102,7 +102,7 @@ async def test_pausing(
         )
         await calls.wait_for_new()
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "pause",
@@ -137,7 +137,7 @@ async def test_resuming(
     await harness.setup_blueprint(BLUEPRINT, base_config())
 
     for action in ["start", "pause", "start"]:
-        with harness.record_calls() as calls:
+        with harness.activities.record_calls() as calls:
             await hass.services.async_call(
                 "timer",
                 action,
@@ -176,7 +176,7 @@ async def test_supports_custom_state_sensor(
         base_config(human_state="sensor.human_state"),
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -195,7 +195,7 @@ async def test_supports_custom_state_sensor(
         },
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         hass.states.async_set("sensor.human_state", "Still going")
         await calls.wait_for_new()
 
@@ -223,7 +223,7 @@ async def test_eta_formatting_hours_and_minutes(
 
     await harness.setup_blueprint(BLUEPRINT, base_config())
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -256,7 +256,7 @@ async def test_eta_formatting_minutes_only(
 
     await harness.setup_blueprint(BLUEPRINT, base_config())
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -294,7 +294,7 @@ async def test_footer_left_sensor(
         base_config(footer_left_sensor="sensor.footer"),
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -386,7 +386,7 @@ async def test_blueprint_input_reflected_in_call(
         base_config(**config_overrides),
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -422,7 +422,7 @@ async def test_idle_state_includes_footer_slots(
         base_config(footer_left_sensor="sensor.footer"),
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",
@@ -459,7 +459,7 @@ async def test_icon_customization(
         ),
     )
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await hass.services.async_call(
             "timer",
             "start",

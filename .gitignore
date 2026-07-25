@@ -11,3 +11,14 @@ wheels/
 
 # Coverage
 .coverage
+
+# Local Home Assistant dev instance (nox -s dev)
+dev/.storage/
+dev/deps/
+dev/home-assistant.log*
+dev/.HA_VERSION
+dev/tts/
+dev/backups/
+dev/.cloud/
+dev/.ha_run.lock
+dev/blueprints/

@@ -1,0 +1,189 @@
+# One automation per blueprint, wired to the demo helpers. Toggle things on
+# the "Aivi Demo" dashboard and watch the payloads arrive in the sink.
+
+- id: demo_activity_progress_simple
+  alias: "Demo activity: Progress (washer)"
+  use_blueprint:
+    path: aivi/activities/progress-simple/blueprint.yaml
+    input:
+      slug: washer
+      state: binary_sensor.demo_washer_running
+      progress_value: sensor.demo_washer_progress
+      header_left_sensor: sensor.demo_washer_cycle
+      header_right_sensor: sensor.demo_washer_eta
+      header_right_formatter: time_until
+      progress_color: cyan
+      icon: washer
+
+- id: demo_activity_progress_timer
+  alias: "Demo activity: Progress (tea timer)"
+  use_blueprint:
+    path: aivi/activities/progress-timer/blueprint.yaml
+    input:
+      slug: tea
+      timer: timer.tea
+      icon: cup.and.saucer.fill
+
+- id: demo_activity_monitor
+  alias: "Demo activity: Monitor (climate)"
+  use_blueprint:
+    path: aivi/activities/monitor-dynamic/blueprint.yaml
+    input:
+      slug: climate
+      state: input_boolean.monitor_active
+      icon: thermometer.medium
+      left_column_header: sensor.demo_living_room_temperature
+      left_column_value: sensor.demo_living_room_temperature
+      right_column_value: sensor.demo_hallway_humidity
+
+- id: demo_widget_status
+  alias: "Demo widget: Status (living room)"
+  use_blueprint:
+    path: aivi/widgets/status/blueprint.yaml
+    input:
+      slug: living-room
+      value_sensor: sensor.demo_living_room_temperature
+      state_sensor: sensor.demo_comfort
+      icon: thermometer.medium
+
+- id: demo_widget_gauge
+  alias: "Demo widget: Gauge (living room)"
+  use_blueprint:
+    path: aivi/widgets/gauge/blueprint.yaml
+    input:
+      slug: living-room-gauge
+      value_sensor: sensor.demo_living_room_temperature
+      min_value: 5
+      max_value: 35
+      label: Living room
+      icon: thermometer.medium
+
+- id: demo_widget_trend
+  alias: "Demo widget: Trend (temperature)"
+  use_blueprint:
+    path: aivi/widgets/trend/blueprint.yaml
+    input:
+      slug: temperature-trend
+      value_sensor: sensor.demo_living_room_temperature
+      points_template: >-
+        {{ state_attr('sensor.demo_living_room_temperature', 'history') }}
+      state_sensor: sensor.demo_comfort
+      icon: thermometer.medium
+
+- id: demo_widget_progress
+  alias: "Demo widget: Progress (washer)"
+  use_blueprint:
+    path: aivi/widgets/progress/blueprint.yaml
+    input:
+      slug: washer-widget
+      progress_value: sensor.demo_washer_progress
+      state_sensor: sensor.demo_washer_cycle
+      end_date_sensor: sensor.demo_washer_eta
+      progress_color: cyan
+      icon: washer
+
+- id: demo_widget_countdown
+  alias: "Demo widget: Countdown (garbage)"
+  use_blueprint:
+    path: aivi/widgets/countdown/blueprint.yaml
+    input:
+      slug: garbage
+      target_sensor: sensor.demo_garbage_pickup
+      subtitle_sensor: sensor.demo_garbage_type
+      expired_text: Pickup missed
+      icon: trash.fill
+
+- id: demo_widget_battery
+  alias: "Demo widget: Battery"
+  use_blueprint:
+    path: aivi/widgets/battery/blueprint.yaml
+    input:
+      slug: batteries
+      devices:
+        - name: Robot vacuum
+          level: sensor.demo_robot_vacuum_battery
+          icon: fan.fill
+        - level: sensor.demo_door_lock_battery
+          charging: binary_sensor.demo_door_lock_charging
+          icon: lock.fill
+      watched:
+        - sensor.demo_robot_vacuum_battery
+        - sensor.demo_door_lock_battery
+        - binary_sensor.demo_door_lock_charging
+
+- id: demo_widget_list
+  alias: "Demo widget: List (home)"
+  use_blueprint:
+    path: aivi/widgets/list/blueprint.yaml
+    input:
+      slug: home
+      rows:
+        - label: Front door
+          entity: binary_sensor.demo_front_door
+          icon: lock.fill
+        - label: Humidity
+          entity: sensor.demo_hallway_humidity
+          icon: humidity.fill
+        - label: Mail
+          entity: input_button.mail_delivered
+          formatter: time_since
+          icon: envelope.fill
+      watched:
+        - binary_sensor.demo_front_door
+        - sensor.demo_hallway_humidity
+        - input_button.mail_delivered
+
+- id: demo_widget_budget
+  alias: "Demo widget: Budget"
+  use_blueprint:
+    path: aivi/widgets/budget/blueprint.yaml
+    input:
+      slug: spending
+      spent_sensor: input_number.monthly_spending
+      budget_amount: 1500
+      currency: SEK
+      subtitle_template: "{{ 30 - now().day }} days left"
+      categories:
+        - label: Food
+          spent: input_number.food_spending
+          budget: 300
+          icon: fork.knife
+        - label: Vehicle
+          spent: input_number.vehicle_spending
+          budget: 200
+          icon: car.fill
+      watched:
+        - input_number.food_spending
+        - input_number.vehicle_spending
+      icon: creditcard.fill
+
+- id: demo_widget_energy
+  alias: "Demo widget: Energy"
+  use_blueprint:
+    path: aivi/widgets/energy/blueprint.yaml
+    input:
+      slug: energy
+      sources:
+        - power: input_number.solar_power
+          today: input_number.solar_energy_today
+      watched:
+        - input_number.solar_power
+        - input_number.solar_energy_today
+      grid_power: input_number.grid_power
+      battery_power: input_number.battery_power
+      battery_level: input_number.battery_soc
+      home_power: input_number.home_power
+
+- id: demo_widget_prices
+  alias: "Demo widget: Prices (electricity)"
+  use_blueprint:
+    path: aivi/widgets/prices/blueprint.yaml
+    input:
+      slug: electricity
+      entries_template: >-
+        {{ state_attr('sensor.demo_energy_prices', 'raw_today') }}
+      unit: ct/kWh
+      icon: bolt.fill
+      custom_triggers:
+        - trigger: state
+          entity_id: sensor.demo_energy_prices

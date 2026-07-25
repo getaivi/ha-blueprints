@@ -1,0 +1,374 @@
+blueprint:
+  name: |
+    Aivi: Gauge widget using sensors
+  description: |
+    Updates an Aivi Gauge widget from a Home Assistant sensor.
+
+    The Gauge template renders a numeric reading on a circular dial.
+    See the [docs](https://docs.getaivi.app/widgets/#gauge-template) for more info about the template.
+
+    Requires the `rest_command.update_widget` REST command from the
+    [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
+
+  domain: automation
+  homeassistant:
+    min_version: 2024.10.0
+
+  input:
+    slug:
+      name: Widget slug
+      description: The slug of the widget to update.
+
+    icon:
+      name: Icon
+      default: ""
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name.
+        Example: thermometer.medium.
+
+    icon_customization:
+      name: Icon customization
+      icon: mdi:palette
+      description: |
+        Advanced rendering options for the SF Symbol icon. Leave at defaults
+        for the standard monochrome appearance.
+      input:
+        icon_rendering_mode:
+          name: Rendering mode
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Monochrome
+                  value: monochrome
+                - label: Hierarchical
+                  value: hierarchical
+                - label: Palette
+                  value: palette
+                - label: Multicolor
+                  value: multicolor
+
+        icon_primary_color:
+          name: Primary color
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_secondary_color:
+          name: Secondary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_tertiary_color:
+          name: Tertiary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_color_rendering:
+          name: Color rendering
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Flat
+                  value: flat
+                - label: Gradient
+                  value: gradient
+
+    accent:
+      name: Accent color
+      description: |
+        An explicit accent color that themes the whole widget on the device,
+        independent of the icon color.
+      default: default
+      selector:
+        select:
+          options:
+            - default
+            - red
+            - orange
+            - yellow
+            - green
+            - mint
+            - teal
+            - cyan
+            - blue
+            - indigo
+            - purple
+            - pink
+            - brown
+            - gray
+            - gray2
+            - gray3
+            - gray4
+            - gray5
+            - gray6
+
+    custom_triggers:
+      name: Custom automation triggers
+      description: |
+        Template fields do not automatically create triggers.
+        Add one trigger for each entity referenced by a template field (usually a `state` trigger).
+        These triggers are evaluated together with the built-in sensor triggers.
+      default: []
+      selector:
+        trigger:
+
+    value:
+      name: Value
+      icon: mdi:gauge
+      input:
+        value_sensor:
+          name: Value (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose numeric state provides the gauge reading.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        value_template:
+          name: Value (template)
+          default: ""
+          description: |
+            Can be used instead of "Value (sensor)" to provide a templated value.
+            Must evaluate to a number.
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+    dial:
+      name: Dial
+      icon: mdi:gauge-full
+      input:
+        min_value:
+          name: Minimum value
+          description: The reading that maps to an empty dial.
+          default: 0
+          selector:
+            number:
+              min: -1000000
+              max: 1000000
+              step: any
+              mode: box
+
+        max_value:
+          name: Maximum value
+          description: The reading that maps to a full dial.
+          default: 100
+          selector:
+            number:
+              min: -1000000
+              max: 1000000
+              step: any
+              mode: box
+
+        unit:
+          name: Unit
+          default: ""
+          description: |
+            The display unit. Leave empty to use the sensor's own unit of
+            measurement, if any.
+
+        label:
+          name: Label
+          default: ""
+          description: A supporting label shown with the reading, e.g. "Living room".
+
+        color:
+          name: Dial color
+          description: |
+            The dial fill color. Leave at default for the built-in cool-to-warm gradient.
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+    tap_url:
+      name: Tap URL
+      icon: mdi:link
+      input:
+        tap_url_template:
+          name: Tap URL (template)
+          default: ""
+          description: |
+            A Jinja2 template for the URL opened when the widget is tapped.
+            Supports any URL scheme (https://, homeassistant://, etc.).
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+    staleness:
+      name: Staleness
+      icon: mdi:clock-alert-outline
+      input:
+        stale_after:
+          name: Mark stale after
+          description: |
+            Marks the widget's data as stale when no update has arrived within
+            this many seconds. Set to 0 to disable. Minimum 60 seconds when enabled.
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 604800
+              unit_of_measurement: seconds
+              mode: box
+
+triggers:
+  - trigger: state
+    entity_id:
+      - !input value_sensor
+
+  - triggers: !input custom_triggers
+
+variables:
+  slug: !input slug
+  icon: !input icon
+  icon_rendering_mode: !input icon_rendering_mode
+  icon_primary_color: !input icon_primary_color
+  icon_secondary_color: !input icon_secondary_color
+  icon_tertiary_color: !input icon_tertiary_color
+  icon_color_rendering: !input icon_color_rendering
+  accent: !input accent
+  tap_url_template: !input tap_url_template
+  stale_after: !input stale_after
+  value_sensor: !input value_sensor
+  value_template: !input value_template
+  min_value: !input min_value
+  max_value: !input max_value
+  unit: !input unit
+  label: !input label
+  color: !input color
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+actions:
+  - condition: template
+    value_template: "{{ has_value(value_sensor) or value_template != '' }}"
+
+  - action: rest_command.update_widget
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {% set icon_obj = {
+          "name": icon,
+          "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
+          "primary_color": icon_primary_color if icon_primary_color != "default" else None,
+          "secondary_color": icon_secondary_color if icon_secondary_color != "default" else None,
+          "tertiary_color": icon_tertiary_color if icon_tertiary_color != "default" else None,
+          "color_rendering": icon_color_rendering if icon_color_rendering != "default" else None,
+        } if icon else None %}
+
+        {% set content = {
+          "template": "gauge",
+          "value": (
+            value_template|float(0)
+            if value_template
+            else states(value_sensor)|float(0)
+          ),
+          "min_value": min_value|float(0),
+          "max_value": max_value|float(100),
+          "unit": unit if unit else state_attr(value_sensor, 'unit_of_measurement'),
+          "label": label if label else None,
+          "color": color if color != "default" else None,
+          "icon": icon_obj,
+          "accent": accent if accent != "default" else None,
+          "tap_url": tap_url_template|string if tap_url_template else None,
+        } %}
+
+        {% if stale_after|int(0) > 0 %}
+        {{ {"content": content, "stale_after": stale_after|int} | to_json }}
+        {% else %}
+        {{ {"content": content} | to_json }}
+        {% endif %}

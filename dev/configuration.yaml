@@ -1,0 +1,200 @@
+homeassistant:
+  name: Aivi Blueprints Dev
+  unit_system: metric
+
+# Explicit component list instead of default_config: keeps startup fast and
+# avoids pulling in recorder & friends with their native dependencies.
+frontend:
+config:
+system_health:
+
+logger:
+  default: warning
+
+# The demo dashboard (ui-lovelace.yaml) is the default dashboard.
+lovelace:
+  mode: yaml
+
+automation ui: !include automations.yaml
+automation demo: !include demo_automations.yaml
+template: !include templates.yaml
+
+# The same rest commands the docs tell users to configure. By default they
+# point at the local sink started by dev/run.py, which pretty-prints every
+# payload. Export the env vars to hit the real Aivi API instead.
+rest_command:
+  update_live_activity:
+    url: !env_var AIVI_ACTIVITY_URL http://127.0.0.1:8124/activity/{{ slug }}
+    method: PATCH
+    headers:
+      content-type: application/json
+      authorization: !env_var AIVI_AUTHORIZATION Token dev
+    payload: "{{ payload }}"
+  update_widget:
+    url: !env_var AIVI_WIDGET_URL http://127.0.0.1:8124/widget/{{ slug }}
+    method: PATCH
+    headers:
+      content-type: application/json
+      authorization: !env_var AIVI_AUTHORIZATION Token dev
+    payload: "{{ payload }}"
+
+input_boolean:
+  washer_running:
+    name: Washer running
+    icon: mdi:washing-machine
+  monitor_active:
+    name: Climate monitor active
+    icon: mdi:monitor-eye
+  lock_charging:
+    name: Door lock charging
+    icon: mdi:battery-charging
+  front_door_locked:
+    name: Front door locked
+    icon: mdi:door-closed-lock
+
+input_number:
+  washer_progress:
+    name: Washer progress
+    min: 0
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+    icon: mdi:progress-clock
+  washer_minutes_left:
+    name: Washer minutes left
+    min: 0
+    max: 180
+    step: 5
+    unit_of_measurement: min
+    icon: mdi:clock-end
+  living_room_temperature:
+    name: Living room temperature
+    min: 5
+    max: 35
+    step: 0.5
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+  hallway_humidity:
+    name: Hallway humidity
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:water-percent
+  vacuum_battery:
+    name: Robot vacuum battery
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:robot-vacuum
+  lock_battery:
+    name: Door lock battery
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:lock
+  solar_power:
+    name: Solar power
+    min: 0
+    max: 10000
+    step: 100
+    unit_of_measurement: W
+    icon: mdi:solar-power
+  solar_energy_today:
+    name: Solar energy today
+    min: 0
+    max: 50
+    step: 0.1
+    unit_of_measurement: kWh
+    icon: mdi:solar-power-variant
+  grid_power:
+    name: Grid power
+    min: -5000
+    max: 5000
+    step: 100
+    unit_of_measurement: W
+    icon: mdi:transmission-tower
+  battery_power:
+    name: Home battery power
+    min: -3000
+    max: 3000
+    step: 100
+    unit_of_measurement: W
+    icon: mdi:home-battery
+  battery_soc:
+    name: Home battery charge
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: "%"
+    icon: mdi:battery-high
+  home_power:
+    name: Home power
+    min: 0
+    max: 8000
+    step: 100
+    unit_of_measurement: W
+    icon: mdi:home-lightning-bolt
+  monthly_spending:
+    name: Monthly spending
+    min: 0
+    max: 3000
+    step: 10
+    icon: mdi:cash-minus
+  food_spending:
+    name: Food spending
+    min: 0
+    max: 1000
+    step: 10
+    icon: mdi:food
+  vehicle_spending:
+    name: Vehicle spending
+    min: 0
+    max: 1000
+    step: 10
+    icon: mdi:car
+
+input_select:
+  washer_cycle:
+    name: Washer cycle
+    options:
+      - Washing
+      - Rinsing
+      - Spinning
+      - Drying
+      - Done
+    icon: mdi:washing-machine
+  comfort_level:
+    name: Comfort level
+    options:
+      - Comfortable
+      - Too warm
+      - Too cold
+    icon: mdi:thermometer-lines
+  garbage_type:
+    name: Garbage type
+    options:
+      - Paper & cardboard
+      - Compost
+      - General waste
+    icon: mdi:recycle
+
+input_datetime:
+  garbage_pickup:
+    name: Garbage pickup
+    has_date: true
+    has_time: true
+    icon: mdi:trash-can-outline
+
+input_button:
+  mail_delivered:
+    name: Mail delivered
+    icon: mdi:mailbox
+
+timer:
+  tea:
+    name: Tea timer
+    duration: "00:03:00"
+    icon: mdi:tea

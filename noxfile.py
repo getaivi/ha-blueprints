@@ -28,3 +28,9 @@ def lint(session: nox.Session) -> None:
     uv_run(session, "--", "ty", "check")
     uv_run(session, "--", "ruff", "check")
     uv_run(session, "--", "ruff", "format", "--check")
+
+
+@nox.session(python="3.13", default=False)
+def dev(session: nox.Session) -> None:
+    """Run a local Home Assistant with all blueprints installed."""
+    uv_run(session, "--", "python", "dev/run.py")

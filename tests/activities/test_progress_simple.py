@@ -7,12 +7,7 @@ from homeassistant.core import HomeAssistant
 
 from tests.helpers.aivi import AiviTestHarness, icon_obj
 
-BLUEPRINT = "progress-segmented"
-
-TWO_SEGMENTS = [
-    {"value": 0.6, "fill_color": "blue"},
-    {"value": 0.4, "fill_color": "green"},
-]
+BLUEPRINT = "activities/progress-simple"
 
 
 @pytest.fixture(autouse=True)
@@ -31,13 +26,12 @@ def base_config(**overrides: Any) -> dict[str, Any]:
         "slug": "test-activity",
         "state": "binary_sensor.activity_state",
         "progress_value": "sensor.progress",
-        "segments": TWO_SEGMENTS,
         **overrides,
     }
 
 
 @pytest.mark.asyncio
-async def test_segmented_progress_basic(
+async def test_state_ongoing(
     hass: HomeAssistant,
     harness: AiviTestHarness,
 ) -> None:
@@ -45,7 +39,7 @@ async def test_segmented_progress_basic(
 
     hass.states.async_set("binary_sensor.activity_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -54,27 +48,7 @@ async def test_segmented_progress_basic(
             "state": "ONGOING",
             "content": IsPartialDict(
                 template="progress",
-                progress={
-                    "style": "segmented",
-                    "value": 0.5,
-                    "display": "split",
-                    "segments": [
-                        {
-                            "value": 0.6,
-                            "fill_color": "blue",
-                            "track_color": "gray",
-                            "track_fill": "solid",
-                            "label": None,
-                        },
-                        {
-                            "value": 0.4,
-                            "fill_color": "green",
-                            "track_color": "gray",
-                            "track_fill": "solid",
-                            "label": None,
-                        },
-                    ],
-                },
+                progress=IsPartialDict(style="simple", value=0.5),
             ),
         },
     )
@@ -88,40 +62,16 @@ async def test_state_idle(
     await harness.setup_blueprint(BLUEPRINT, base_config())
 
     hass.states.async_set("binary_sensor.activity_state", "on")
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     hass.states.async_set("binary_sensor.activity_state", "off")
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
         "test-activity",
         {"state": "IDLE", "content": IsPartialDict(template="progress")},
-    )
-
-
-@pytest.mark.asyncio
-async def test_state_ongoing(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await harness.setup_blueprint(BLUEPRINT, base_config())
-
-    hass.states.async_set("binary_sensor.activity_state", "on")
-
-    with harness.record_calls() as calls:
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "test-activity",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                template="progress",
-                progress=IsPartialDict(style="segmented", value=0.5),
-            ),
-        },
     )
 
 
@@ -133,11 +83,11 @@ async def test_progress_value_from_sensor(
     await harness.setup_blueprint(BLUEPRINT, base_config())
 
     hass.states.async_set("binary_sensor.activity_state", "on")
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     hass.states.async_set("sensor.progress", "0.75")
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -146,106 +96,6 @@ async def test_progress_value_from_sensor(
             "state": "ONGOING",
             "content": IsPartialDict(
                 progress=IsPartialDict(value=0.75),
-            ),
-        },
-    )
-
-
-@pytest.mark.asyncio
-async def test_segmented_display_layered(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(progress_display="layered"),
-    )
-
-    hass.states.async_set("binary_sensor.activity_state", "on")
-
-    with harness.record_calls() as calls:
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "test-activity",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                progress=IsPartialDict(display="layered"),
-            ),
-        },
-    )
-
-
-@pytest.mark.asyncio
-async def test_segments_with_all_fields(
-    hass: HomeAssistant,
-    harness: AiviTestHarness,
-) -> None:
-    segments = [
-        {
-            "value": 0.3,
-            "fill_color": "orange",
-            "track_color": "brown",
-            "track_fill": "hatched",
-            "label": "Heat",
-        },
-        {
-            "value": 0.5,
-            "fill_color": "blue",
-            "track_color": "gray2",
-            "track_fill": "solid",
-            "label": "Print",
-        },
-        {
-            "value": 0.2,
-            "fill_color": "cyan",
-            "track_color": "gray",
-            "track_fill": "hatched",
-            "label": "Cool",
-        },
-    ]
-
-    await harness.setup_blueprint(
-        BLUEPRINT,
-        base_config(segments=segments),
-    )
-
-    hass.states.async_set("binary_sensor.activity_state", "on")
-
-    with harness.record_calls() as calls:
-        await calls.wait_for_new()
-
-    calls.assert_calls(
-        "test-activity",
-        {
-            "state": "ONGOING",
-            "content": IsPartialDict(
-                progress=IsPartialDict(
-                    segments=[
-                        {
-                            "value": 0.3,
-                            "fill_color": "orange",
-                            "track_color": "brown",
-                            "track_fill": "hatched",
-                            "label": "Heat",
-                        },
-                        {
-                            "value": 0.5,
-                            "fill_color": "blue",
-                            "track_color": "gray2",
-                            "track_fill": "solid",
-                            "label": "Print",
-                        },
-                        {
-                            "value": 0.2,
-                            "fill_color": "cyan",
-                            "track_color": "gray",
-                            "track_fill": "hatched",
-                            "label": "Cool",
-                        },
-                    ],
-                ),
             ),
         },
     )
@@ -263,7 +113,7 @@ async def test_progress_value_from_template(
 
     hass.states.async_set("binary_sensor.activity_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -298,11 +148,11 @@ async def test_progress_value_template_reacts_to_entity_change(
     )
 
     hass.states.async_set("binary_sensor.activity_state", "on")
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     hass.states.async_set("sensor.raw_progress", "75")
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -378,10 +228,10 @@ async def test_reacts_to_slot_sensor_changes(
     await harness.setup_blueprint(BLUEPRINT, base_config(**config_overrides))
 
     hass.states.async_set("binary_sensor.activity_state", "on")
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         hass.states.async_set(changed_entity_id, changed_state)
         await asyncio.wait_for(calls.wait_for_new(), timeout=0.3)
 
@@ -410,7 +260,7 @@ async def test_template_overrides(
 
     hass.states.async_set("binary_sensor.activity_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -457,7 +307,7 @@ async def test_defaults_are_normalized(
 
     hass.states.async_set("binary_sensor.activity_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -489,7 +339,7 @@ async def test_slot_sensor_includes_units(
 
     hass.states.async_set("binary_sensor.activity_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -525,7 +375,7 @@ async def test_custom_triggers_support_template_inputs(
 
     hass.states.async_set("sensor.dynamic_header", "Updated")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -555,9 +405,15 @@ async def test_custom_triggers_support_template_inputs(
             id="slug",
         ),
         pytest.param(
-            {"tap_url_template": "{{ 'homeassistant://navigate/printer' }}"},
+            {"progress_color": "green"},
             None,
-            IsPartialDict(tap_url="homeassistant://navigate/printer"),
+            IsPartialDict(progress=IsPartialDict(color="green")),
+            id="progress_color",
+        ),
+        pytest.param(
+            {"tap_url_template": "{{ 'homeassistant://navigate/laundry' }}"},
+            None,
+            IsPartialDict(tap_url="homeassistant://navigate/laundry"),
             id="tap_url",
         ),
         pytest.param(
@@ -589,7 +445,7 @@ async def test_blueprint_input_reflected_in_call(
 
     hass.states.async_set("binary_sensor.activity_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(
@@ -617,7 +473,7 @@ async def test_icon_customization(
 
     hass.states.async_set("binary_sensor.activity_state", "on")
 
-    with harness.record_calls() as calls:
+    with harness.activities.record_calls() as calls:
         await calls.wait_for_new()
 
     calls.assert_calls(

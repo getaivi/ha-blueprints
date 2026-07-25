@@ -1,0 +1,471 @@
+blueprint:
+  name: |
+    Aivi: Energy widget using sensors
+  description: |
+    Updates an Aivi Energy widget from Home Assistant power sensors.
+
+    The Energy template shows the home energy picture at a glance: up to
+    three generation sources, grid, battery, and home consumption.
+    Configure at least one node.
+
+    Sign conventions: grid power is positive when importing and negative
+    when exporting; battery power is positive when charging and negative
+    when discharging.
+    See the [docs](https://docs.getaivi.app/widgets/#energy-template) for more info about the template.
+
+    Requires the `rest_command.update_widget` REST command from the
+    [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
+
+  domain: automation
+  homeassistant:
+    min_version: 2025.7.0
+
+  input:
+    slug:
+      name: Widget slug
+      description: The slug of the widget to update.
+
+    icon:
+      name: Icon
+      default: ""
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name.
+        Example: bolt.fill.
+
+    icon_customization:
+      name: Icon customization
+      icon: mdi:palette
+      description: |
+        Advanced rendering options for the SF Symbol icon. Leave at defaults
+        for the standard monochrome appearance.
+      input:
+        icon_rendering_mode:
+          name: Rendering mode
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Monochrome
+                  value: monochrome
+                - label: Hierarchical
+                  value: hierarchical
+                - label: Palette
+                  value: palette
+                - label: Multicolor
+                  value: multicolor
+
+        icon_primary_color:
+          name: Primary color
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_secondary_color:
+          name: Secondary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_tertiary_color:
+          name: Tertiary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_color_rendering:
+          name: Color rendering
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Flat
+                  value: flat
+                - label: Gradient
+                  value: gradient
+
+    accent:
+      name: Accent color
+      description: |
+        An explicit accent color that themes the whole widget on the device,
+        independent of the icon color.
+      default: default
+      selector:
+        select:
+          options:
+            - default
+            - red
+            - orange
+            - yellow
+            - green
+            - mint
+            - teal
+            - cyan
+            - blue
+            - indigo
+            - purple
+            - pink
+            - brown
+            - gray
+            - gray2
+            - gray3
+            - gray4
+            - gray5
+            - gray6
+
+    custom_triggers:
+      name: Custom automation triggers
+      description: |
+        Template fields do not automatically create triggers.
+        Add one trigger for each entity referenced by a template field (usually a `state` trigger).
+        These triggers are evaluated together with the built-in sensor triggers.
+      default: []
+      selector:
+        trigger:
+
+    sources:
+      name: Generation sources
+      description: |
+        One row per generation source - solar, wind, hydro, generator - up
+        to 3. Unnamed sources use the solar presentation. Power is in watts;
+        "Energy today" is in kWh.
+      default: []
+      selector:
+        object:
+          multiple: true
+          label_field: name
+          fields:
+            name:
+              label: Name
+              selector:
+                text:
+            power:
+              label: Power (sensor)
+              required: true
+              selector:
+                entity:
+                  filter:
+                    - domain: sensor
+            today:
+              label: Energy today (sensor)
+              selector:
+                entity:
+                  filter:
+                    - domain: sensor
+            icon:
+              label: Icon (SF Symbol)
+              selector:
+                text:
+            color:
+              label: Color
+              selector:
+                select:
+                  options:
+                    - default
+                    - red
+                    - orange
+                    - yellow
+                    - green
+                    - mint
+                    - teal
+                    - cyan
+                    - blue
+                    - indigo
+                    - purple
+                    - pink
+                    - brown
+                    - gray
+                    - gray2
+                    - gray3
+                    - gray4
+                    - gray5
+                    - gray6
+
+    watched:
+      name: Watched entities
+      default: []
+      description: |
+        Entities referenced in the rows above are not watched automatically.
+        Select them here so their changes trigger a widget update.
+      selector:
+        entity:
+          multiple: true
+
+    grid:
+      name: Grid
+      icon: mdi:transmission-tower
+      input:
+        grid_power:
+          name: Power (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: |
+            A sensor whose state is the instantaneous power in watts.
+            Positive when importing, negative when exporting.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        grid_today:
+          name: Energy today (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state is today's cumulative energy in kWh.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+    battery:
+      name: Battery
+      icon: mdi:home-battery
+      input:
+        battery_power:
+          name: Power (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: |
+            A sensor whose state is the instantaneous power in watts.
+            Positive when charging, negative when discharging.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        battery_level:
+          name: Charge level (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state is the battery charge in percent (0-100).
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+    home:
+      name: Home
+      icon: mdi:home-lightning-bolt
+      input:
+        home_power:
+          name: Power (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: |
+            A sensor whose state is the instantaneous power in watts.
+            The home's current consumption.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+        home_today:
+          name: Energy today (sensor)
+          default: sensor.dummy_non_existent_sensor
+          description: A sensor whose state is today's cumulative energy in kWh.
+          selector:
+            entity:
+              filter:
+                - domain: sensor
+
+    tap_url:
+      name: Tap URL
+      icon: mdi:link
+      input:
+        tap_url_template:
+          name: Tap URL (template)
+          default: ""
+          description: |
+            A Jinja2 template for the URL opened when the widget is tapped.
+            Supports any URL scheme (https://, homeassistant://, etc.).
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+    staleness:
+      name: Staleness
+      icon: mdi:clock-alert-outline
+      input:
+        stale_after:
+          name: Mark stale after
+          description: |
+            Marks the widget's data as stale when no update has arrived within
+            this many seconds. Set to 0 to disable. Minimum 60 seconds when enabled.
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 604800
+              unit_of_measurement: seconds
+              mode: box
+
+triggers:
+  - trigger: state
+    entity_id:
+      - !input grid_power
+      - !input grid_today
+      - !input battery_power
+      - !input battery_level
+      - !input home_power
+      - !input home_today
+
+  - trigger: state
+    entity_id: !input watched
+
+  - triggers: !input custom_triggers
+
+variables:
+  slug: !input slug
+  icon: !input icon
+  icon_rendering_mode: !input icon_rendering_mode
+  icon_primary_color: !input icon_primary_color
+  icon_secondary_color: !input icon_secondary_color
+  icon_tertiary_color: !input icon_tertiary_color
+  icon_color_rendering: !input icon_color_rendering
+  accent: !input accent
+  tap_url_template: !input tap_url_template
+  stale_after: !input stale_after
+  sources: !input sources
+  grid_power: !input grid_power
+  grid_today: !input grid_today
+  battery_power: !input battery_power
+  battery_level: !input battery_level
+  home_power: !input home_power
+  home_today: !input home_today
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+actions:
+  - condition: template
+    value_template: >-
+      {% set ns = namespace(any=false) %}
+      {% for s in sources if s.get('power') and has_value(s.power) %}
+      {% set ns.any = true %}
+      {% endfor %}
+      {{ ns.any
+         or has_value(grid_power)
+         or has_value(battery_power)
+         or has_value(home_power) }}
+
+  - action: rest_command.update_widget
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {% set ns = namespace(sources=[]) %}
+        {% for s in sources[:3] if s.get('power') and has_value(s.power) %}
+        {% set ns.sources = ns.sources + [{
+          "name": s.get('name') or None,
+          "power": states(s.power)|float(0),
+          "today": states(s.today)|float(0) if s.get('today') and has_value(s.today) else None,
+          "icon": s.get('icon') or None,
+          "color": s.get('color') if s.get('color', 'default') != 'default' else None,
+        }] %}
+        {% endfor %}
+
+        {% set grid = {
+          "power": states(grid_power)|float(0),
+          "today": states(grid_today)|float(0) if has_value(grid_today) else None,
+        } if has_value(grid_power) else None %}
+
+        {% set battery = {
+          "power": states(battery_power)|float(0),
+          "level": (
+            min(max(states(battery_level)|float(0), 0), 100)
+            if has_value(battery_level)
+            else None
+          ),
+        } if has_value(battery_power) else None %}
+
+        {% set home = {
+          "power": states(home_power)|float(0),
+          "today": states(home_today)|float(0) if has_value(home_today) else None,
+        } if has_value(home_power) else None %}
+
+        {% set icon_obj = {
+          "name": icon,
+          "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
+          "primary_color": icon_primary_color if icon_primary_color != "default" else None,
+          "secondary_color": icon_secondary_color if icon_secondary_color != "default" else None,
+          "tertiary_color": icon_tertiary_color if icon_tertiary_color != "default" else None,
+          "color_rendering": icon_color_rendering if icon_color_rendering != "default" else None,
+        } if icon else None %}
+
+        {% set content = {
+          "template": "energy",
+          "sources": ns.sources,
+          "grid": grid,
+          "battery": battery,
+          "home": home,
+          "icon": icon_obj,
+          "accent": accent if accent != "default" else None,
+          "tap_url": tap_url_template|string if tap_url_template else None,
+        } %}
+
+        {% if stale_after|int(0) > 0 %}
+        {{ {"content": content, "stale_after": stale_after|int} | to_json }}
+        {% else %}
+        {{ {"content": content} | to_json }}
+        {% endif %}
