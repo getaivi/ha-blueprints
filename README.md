@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Aivi</strong><br />
-  Live Activities over API
+  Live Activities &amp; Widgets over API
 </p>
 
 <p align="center">
@@ -36,9 +36,10 @@ release process, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## What is Aivi?
 
-Aivi is the simplest way to connect your devices to a real-time Live Activity
-on your iPhone. By making a HTTP call to the Aivi API, you can track the
-progress of anything – from a washer machine cycle to a progress of a 3D print.
+Aivi is the simplest way to connect your devices to real-time Live Activities
+and widgets on your iPhone. By making a HTTP call to the Aivi API, you can
+track the progress of anything – from a washer machine cycle to a progress of
+a 3D print – and keep any metric at a glance on your Home or Lock Screen.
 
 ### Features
 - **Broad support.** Supports live activities on iOS, iPadOS, WatchOS, CarPlay
@@ -49,6 +50,9 @@ progress of anything – from a washer machine cycle to a progress of a 3D print
 - **Live activities for any device.** Most smart home devices do not offer live
   activities. Aivi bridges that gap, allowing you to add them to all your
   devices, old or new.
+- **Widgets.** Keep an eye on your home from the Home and Lock Screen –
+  gauges, trends, battery levels, energy prices, and more – updated through
+  the same API.
 - **Power-Efficient.** Because Aivi only sends data when something changes,
   your devices do not waste battery constantly polling for updates.
 
