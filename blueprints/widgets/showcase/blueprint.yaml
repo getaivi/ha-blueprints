@@ -1,0 +1,445 @@
+blueprint:
+  name: |
+    Aivi: Showcase widget using sensors
+  description: |
+    Updates an Aivi Showcase widget from Home Assistant entities.
+
+    The Showcase template shows a picture of a thing, its state, when it
+    last reported, and up to six readings: a car, a robot vacuum, a 3D
+    printer, a plant.
+    See the [docs](https://docs.getaivi.app/widget-templates/#showcase-template) for more info about the template.
+
+    Requires the `rest_command.update_widget` REST command from the
+    [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
+
+  domain: automation
+  homeassistant:
+    min_version: 2025.7.0
+
+  input:
+    slug:
+      name: Widget slug
+      description: The slug of the widget to update.
+
+    icon:
+      name: Icon
+      default: ""
+      description: |
+        An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name.
+        Example: car.fill.
+
+    icon_customization:
+      name: Icon customization
+      icon: mdi:palette
+      description: |
+        Advanced rendering options for the SF Symbol icon. Leave at defaults
+        for the standard monochrome appearance.
+      input:
+        icon_rendering_mode:
+          name: Rendering mode
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Monochrome
+                  value: monochrome
+                - label: Hierarchical
+                  value: hierarchical
+                - label: Palette
+                  value: palette
+                - label: Multicolor
+                  value: multicolor
+
+        icon_primary_color:
+          name: Primary color
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_secondary_color:
+          name: Secondary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_tertiary_color:
+          name: Tertiary color (palette mode)
+          default: default
+          selector:
+            select:
+              options:
+                - default
+                - red
+                - orange
+                - yellow
+                - green
+                - mint
+                - teal
+                - cyan
+                - blue
+                - indigo
+                - purple
+                - pink
+                - brown
+                - gray
+                - gray2
+                - gray3
+                - gray4
+                - gray5
+                - gray6
+
+        icon_color_rendering:
+          name: Color rendering
+          default: default
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Default
+                  value: default
+                - label: Flat
+                  value: flat
+                - label: Gradient
+                  value: gradient
+
+    accent:
+      name: Accent color
+      description: |
+        An explicit accent color that themes the whole widget on the device,
+        independent of the icon color.
+      default: default
+      selector:
+        select:
+          options:
+            - default
+            - red
+            - orange
+            - yellow
+            - green
+            - mint
+            - teal
+            - cyan
+            - blue
+            - indigo
+            - purple
+            - pink
+            - brown
+            - gray
+            - gray2
+            - gray3
+            - gray4
+            - gray5
+            - gray6
+
+    custom_triggers:
+      name: Custom automation triggers
+      description: |
+        Template fields do not automatically create triggers.
+        Add one trigger for each entity referenced by a template field (usually a `state` trigger).
+        These triggers are evaluated together with the built-in sensor triggers.
+      default: []
+      selector:
+        trigger:
+
+
+    picture:
+      name: Picture
+      icon: mdi:image
+      input:
+        image_url:
+          name: Picture URL
+          default: ""
+          description: |
+            A public `https://` URL of the picture. Each phone downloads it on
+            its own, so it must be reachable from anywhere without logging in.
+            Home Assistant camera snapshots and `entity_picture` paths are
+            private and won't load. See
+            [Hosting Pictures](https://docs.getaivi.app/guides/hosting-pictures/)
+            for where to put it.
+          selector:
+            text:
+              type: url
+
+        image_alt:
+          name: Picture description
+          default: ""
+          description: |
+            What the picture shows, read by VoiceOver. At most 64 characters.
+            Defaults to the widget's name.
+          selector:
+            text:
+
+        image_fit:
+          name: Picture fit
+          default: contain
+          description: |
+            "Contain" shows a cut-out on a transparent background whole.
+            "Cover" crops a photo to fill the space.
+          selector:
+            select:
+              mode: dropdown
+              options:
+                - label: Contain
+                  value: contain
+                - label: Cover
+                  value: cover
+
+        badge_url:
+          name: Badge URL
+          default: ""
+          description: |
+            A public `https://` URL of a small mark shown beside the report
+            time, such as a brand logo. Optional.
+          selector:
+            text:
+              type: url
+
+    state:
+      name: State
+      icon: mdi:text-short
+      input:
+        state_entity:
+          name: State (entity)
+          default: sensor.dummy_non_existent_sensor
+          description: |
+            An entity whose state is shown as the state, e.g. "Locked".
+            Its last change is shown as the report time.
+          selector:
+            entity:
+
+        state_icon:
+          name: State icon
+          default: ""
+          description: |
+            An [SF Symbols](https://developer.apple.com/sf-symbols/) icon name
+            shown in front of the state. Example: lock.fill.
+          selector:
+            text:
+
+    readings:
+      name: Readings
+      description: |
+        One row per reading, up to 6. "Label" is optional and falls back to
+        the entity's friendly name. The value and unit come from the entity.
+      selector:
+        object:
+          multiple: true
+          label_field: label
+          fields:
+            entity:
+              label: Entity
+              required: true
+              selector:
+                entity:
+            label:
+              label: Label
+              selector:
+                text:
+
+    watched:
+      name: Watched entities
+      default: []
+      description: |
+        Entities referenced in the readings above are not watched automatically.
+        Select them here so their changes trigger a widget update.
+      selector:
+        entity:
+          multiple: true
+
+    tap_url:
+      name: Tap URL
+      icon: mdi:link
+      input:
+        tap_url_template:
+          name: Tap URL (template)
+          default: ""
+          description: |
+            A Jinja2 template for the URL opened when the widget is tapped.
+            Supports any URL scheme (https://, homeassistant://, etc.).
+            If this template references entities, add matching triggers in "Custom automation triggers".
+          selector:
+            template:
+
+    staleness:
+      name: Staleness
+      icon: mdi:clock-alert-outline
+      input:
+        stale_after:
+          name: Mark stale after
+          description: |
+            Marks the widget's data as stale when no update has arrived within
+            this many seconds. Set to 0 to disable. Minimum 60 seconds when enabled.
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 604800
+              unit_of_measurement: seconds
+              mode: box
+
+triggers:
+  - trigger: state
+    entity_id: !input state_entity
+
+  - trigger: state
+    entity_id: !input watched
+
+  - triggers: !input custom_triggers
+
+variables:
+  slug: !input slug
+  icon: !input icon
+  icon_rendering_mode: !input icon_rendering_mode
+  icon_primary_color: !input icon_primary_color
+  icon_secondary_color: !input icon_secondary_color
+  icon_tertiary_color: !input icon_tertiary_color
+  icon_color_rendering: !input icon_color_rendering
+  accent: !input accent
+  image_url: !input image_url
+  image_alt: !input image_alt
+  image_fit: !input image_fit
+  badge_url: !input badge_url
+  state_entity: !input state_entity
+  state_icon: !input state_icon
+  readings: !input readings
+  tap_url_template: !input tap_url_template
+  stale_after: !input stale_after
+
+mode: queued
+max: 10
+max_exceeded: silent
+
+actions:
+  # The template needs at least one reading.
+  - condition: template
+    value_template: >-
+      {% set ns = namespace(any=false) %}
+      {% for r in readings[:6] if r.get('entity') and has_value(r.entity) %}
+      {% set ns.any = true %}
+      {% endfor %}
+      {{ ns.any }}
+
+  - action: rest_command.update_widget
+    response_variable: aivi_response
+    data:
+      slug: "{{ slug }}"
+      payload: >-
+        {% set ns = namespace(stats=[]) %}
+        {% for r in readings[:6] if r.get('entity') and has_value(r.entity) %}
+        {% set unit = state_attr(r.entity, 'unit_of_measurement') %}
+        {% set label = (r.get('label') or '') | trim
+           or (state_attr(r.entity, 'friendly_name') or '') | trim
+           or r.entity %}
+        {% set ns.stats = ns.stats + [{
+          "label": label[:24] | trim,
+          "value": {
+            "value": (
+              state_translated(r.entity)
+              if unit is none
+              else states(r.entity, rounded=True)
+            )[:128],
+            "text_color": None,
+            "formatter": None,
+          },
+          "unit": (unit | string)[:8] if unit else None,
+        }] %}
+        {% endfor %}
+
+        {% set image_url = (image_url or '') | trim %}
+        {% set image_alt = (image_alt or '') | trim %}
+        {% set image = {
+          "url": image_url,
+          "alt": image_alt[:64] if image_alt else None,
+          "fit": image_fit,
+        } if image_url else None %}
+
+        {% set badge_url = (badge_url or '') | trim %}
+        {% set badge = {"url": badge_url, "alt": None} if badge_url else None %}
+
+        {% set has_state = has_value(state_entity) %}
+        {% set state = {
+          "text": {
+            "value": (
+              state_translated(state_entity)
+              if state_attr(state_entity, 'unit_of_measurement') is none
+              else states(state_entity, rounded=True, with_unit=True)
+            )[:24] | trim,
+            "text_color": None,
+          },
+          "icon": state_icon or None,
+        } if has_state else None %}
+
+        {% set reported_at = (
+          expand(state_entity)[0].last_changed.isoformat()
+          if has_state else None
+        ) %}
+
+        {% set icon_obj = {
+          "name": icon,
+          "rendering_mode": icon_rendering_mode if icon_rendering_mode != "default" else None,
+          "primary_color": icon_primary_color if icon_primary_color != "default" else None,
+          "secondary_color": icon_secondary_color if icon_secondary_color != "default" else None,
+          "tertiary_color": icon_tertiary_color if icon_tertiary_color != "default" else None,
+          "color_rendering": icon_color_rendering if icon_color_rendering != "default" else None,
+        } if icon else None %}
+
+        {% set content = {
+          "template": "showcase",
+          "image": image,
+          "badge": badge,
+          "state": state,
+          "reported_at": reported_at,
+          "stats": ns.stats,
+          "icon": icon_obj,
+          "accent": accent if accent != "default" else None,
+          "tap_url": tap_url_template|string if tap_url_template else None,
+        } %}
+
+        {% if stale_after|int(0) > 0 %}
+        {{ {"content": content, "stale_after": stale_after|int} | to_json }}
+        {% else %}
+        {{ {"content": content} | to_json }}
+        {% endif %}
