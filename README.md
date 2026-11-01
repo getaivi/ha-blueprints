@@ -23,6 +23,11 @@ This repository is where the official Aivi Home Assistant blueprints are
 developed. For details on the available blueprints and how to use them, see the
 [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
 
+The [Aivi integration for Home Assistant](https://github.com/getaivi/home-assistant)
+covers the same widgets and Live Activities without YAML, buttons included. See
+the [integration documentation](https://docs.getaivi.app/home-assistant/integration/).
+The blueprints stay supported for anyone who prefers plain automations.
+
 The blueprints are organized by what they drive:
 
 - [`blueprints/activities/`](blueprints/activities) — blueprints that update
