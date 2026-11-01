@@ -102,7 +102,7 @@
       devices:
         - name: Robot vacuum
           level: sensor.demo_robot_vacuum_battery
-          icon: fan.fill
+          icon: house.fill
         - level: sensor.demo_door_lock_battery
           charging: binary_sensor.demo_door_lock_charging
           icon: lock.fill
@@ -187,3 +187,25 @@
       custom_triggers:
         - trigger: state
           entity_id: sensor.demo_energy_prices
+
+- id: demo_widget_showcase
+  alias: "Demo widget: Showcase (home)"
+  use_blueprint:
+    path: aivi/widgets/showcase/blueprint.yaml
+    input:
+      slug: house
+      image_url: https://example.com/aivi/house.png
+      image_alt: The house
+      state_entity: binary_sensor.demo_front_door
+      state_icon: lock.fill
+      readings:
+        - entity: sensor.demo_robot_vacuum_battery
+          label: Vacuum battery
+        - entity: sensor.demo_hallway_humidity
+        - entity: sensor.demo_living_room_temperature
+          label: Temperature
+      watched:
+        - sensor.demo_robot_vacuum_battery
+        - sensor.demo_hallway_humidity
+        - sensor.demo_living_room_temperature
+      icon: house.fill
