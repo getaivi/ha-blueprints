@@ -406,6 +406,7 @@ actions:
           target_template if target_template else states(target_sensor),
           none
         ) %}
+        {% set target = target if target.tzinfo else target|as_local %}
 
         {% set content = {
           "template": "countdown",
