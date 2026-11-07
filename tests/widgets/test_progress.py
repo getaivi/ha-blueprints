@@ -60,6 +60,24 @@ async def test_reacts_to_sensor_changes(
     )
 
 
+async def test_naive_end_date_is_read_in_the_home_assistant_time_zone(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await hass.config.async_set_time_zone("Europe/Warsaw")
+    hass.states.async_set("sensor.washer_end_time", "2026-07-20 14:30:00")
+    await harness.setup_blueprint(BLUEPRINT, base_config())
+
+    with harness.widgets.record_calls() as calls:
+        hass.states.async_set("sensor.washer_progress", "0.5")
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "washer",
+        {"content": IsPartialDict(end_date="2026-07-20T14:30:00+02:00")},
+    )
+
+
 async def test_works_without_optional_inputs(
     hass: HomeAssistant,
     harness: AiviTestHarness,

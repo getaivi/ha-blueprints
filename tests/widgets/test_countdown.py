@@ -95,6 +95,36 @@ async def test_target_template(
     )
 
 
+async def test_naive_target_is_read_in_the_home_assistant_time_zone(
+    hass: HomeAssistant,
+    harness: AiviTestHarness,
+) -> None:
+    await hass.config.async_set_time_zone("Europe/Warsaw")
+    hass.states.async_set("input_datetime.pickup", "2026-08-01 06:00:00")
+    await harness.setup_blueprint(
+        BLUEPRINT,
+        {
+            "slug": "garbage",
+            "target_template": "{{ states('input_datetime.pickup') }}",
+            "custom_triggers": [
+                {
+                    "trigger": "state",
+                    "entity_id": "sensor.garbage_type",
+                },
+            ],
+        },
+    )
+
+    with harness.widgets.record_calls() as calls:
+        hass.states.async_set("sensor.garbage_type", "Compost")
+        await calls.wait_for_new()
+
+    calls.assert_calls(
+        "garbage",
+        {"content": IsPartialDict(target="2026-08-01T06:00:00+02:00")},
+    )
+
+
 async def test_skips_update_when_target_invalid(
     hass: HomeAssistant,
     harness: AiviTestHarness,

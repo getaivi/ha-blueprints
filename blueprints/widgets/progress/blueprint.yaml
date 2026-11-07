@@ -441,6 +441,7 @@ actions:
           if has_value(end_date_sensor)
           else None
         ) %}
+        {% set end_date = end_date|as_local if end_date and not end_date.tzinfo else end_date %}
 
         {% set content = {
           "template": "progress",
