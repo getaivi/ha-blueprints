@@ -7,7 +7,7 @@ blueprint:
     The Trend template shows a current reading with a compact history
     sparkline. The history points come from a template you provide,
     for example from a statistics sensor's attributes.
-    See the [docs](https://docs.getaivi.app/widgets/#trend-template) for more info about the template.
+    See the [docs](https://docs.getaivi.app/widget-templates/#trend-template) for more info about the template.
 
     Requires the `rest_command.update_widget` REST command from the
     [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
