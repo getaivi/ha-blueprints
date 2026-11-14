@@ -5,7 +5,7 @@ blueprint:
     Updates an Aivi Status widget from Home Assistant sensors.
 
     The Status template shows a hero value with a supporting state line.
-    See the [docs](https://docs.getaivi.app/widgets/#status-template) for more info about the template.
+    See the [docs](https://docs.getaivi.app/widget-templates/#status-template) for more info about the template.
 
     Requires the `rest_command.update_widget` REST command from the
     [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).

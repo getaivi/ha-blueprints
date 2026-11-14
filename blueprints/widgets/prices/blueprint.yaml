@@ -7,7 +7,7 @@ blueprint:
     The Prices template charts a price timeline - dynamic electricity
     tariffs and the like - and highlights the current period, so a
     single nightly update stays correct all day.
-    See the [docs](https://docs.getaivi.app/widgets/#prices-template) for more info about the template.
+    See the [docs](https://docs.getaivi.app/widget-templates/#prices-template) for more info about the template.
 
     Requires the `rest_command.update_widget` REST command from the
     [blueprint documentation](https://docs.getaivi.app/home-assistant/blueprints/).
